@@ -1,1 +1,0 @@
-# StayNow-project
