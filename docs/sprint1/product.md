@@ -182,10 +182,10 @@
 
 ### 5.1. BPMN-моделі
 
-1. «Бронювання номера» — [docs/sprint1/bpmn/process_1_booking.png]
-2. «Заселення і виселення» — [./bpmn/process_2_checkin_checkout.png]
-3. «Скасування і повернення коштів» — [./bpmn/process_2_checkin_checkout.png
-4. «Обробка повідомлень гостей» — [./bpmn/process_4_guest_messages.png]
+1. «Бронювання номера» — [PNG](./bpmn/process_1_booking.png) | [DRAWIO](./bpmn/process_1_booking.drawio)
+2. «Заселення і виселення» — [PNG](./bpmn/process_2_checkin_checkout.png) | [DRAWIO](./bpmn/process_2_checkin_checkout.drawio)
+3. «Скасування і повернення коштів» — [PNG](./bpmn/process_3_cancellation.png) | [DRAWIO](./bpmn/process_3_cancellation.drawio)
+4. «Обробка повідомлень гостей» — [PNG](./bpmn/process_4_guest_messages.png) | [DRAWIO](./bpmn/process_4_guest_messages.drawio)
 
 ### 5.2. Інші артефакти Спринту 1
 
