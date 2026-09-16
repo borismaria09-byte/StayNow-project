@@ -182,7 +182,7 @@
 
 ### 5.1. BPMN-моделі
 
-1. «Бронювання номера» — [./bpmn/process_1_booking.png]
+1. «Бронювання номера» — [docs/sprint1/bpmn/process_1_booking.png]
 2. «Заселення і виселення» — [./bpmn/process_2_checkin_checkout.png]
 3. «Скасування і повернення коштів» — [./bpmn/process_2_checkin_checkout.png
 4. «Обробка повідомлень гостей» — [./bpmn/process_4_guest_messages.png]
