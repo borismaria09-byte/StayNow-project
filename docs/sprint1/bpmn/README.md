@@ -4,7 +4,7 @@
 1. **Process 1:** Бронювання номера (`process_1_booking`)
 2. **Process 2:** Заселення і виселення (`process_2_checkin_checkout`)
 3. **Process 3:** Скасування і повернення коштів (`process_3_cancellation`)
-4. **Process 4:** Обробка повідомлень гостей (`process_4_messaging`)
+4. **Process 4:** Обробка повідомлень гостей (`process_4_guest_messaging`)
 
 ## Інструменти та версії
 * **Інструмент моделювання:** [draw.io](https://app.diagrams.net/) (Web-версія / Desktop v24.x)
