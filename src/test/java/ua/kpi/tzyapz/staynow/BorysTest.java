@@ -36,7 +36,7 @@ class BorysTest {
                 LocalDate.of(2026, 8, 20)
         );
 
-        assertTrue(
+        assertFalse(
                 errors.contains(BookingError.NIGHTS_OUT_OF_RANGE),
                 "BL-10 дозволяє бронювання тривалістю рівно 30 ночей"
         );
