@@ -129,17 +129,18 @@ class BorysUiTest {
 
         checkAvailability.click();
         WebElement singleCard = wait.until(driver -> {
-
+        
             List<WebElement> cards =
-                    driver.findElements(By.cssSelector("div"));
-
+                    driver.findElements(
+                            By.xpath("//*[.//*[normalize-space()='Single']]")
+                    );
+        
             return cards.stream()
                     .filter(WebElement::isDisplayed)
                     .filter(card -> {
                         String text = card.getText();
-
-                        return text.contains("Single")
-                                && text.contains("£100 per night")
+        
+                        return text.contains("£100 per night")
                                 && text.contains("TV")
                                 && text.contains("WiFi")
                                 && text.contains("Safe")
