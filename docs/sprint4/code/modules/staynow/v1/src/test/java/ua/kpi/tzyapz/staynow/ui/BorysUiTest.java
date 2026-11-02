@@ -1,4 +1,4 @@
-package ua.kpi.tzyapz.staynow;
+package ua.kpi.tzyapz.staynow.ui;
 
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
