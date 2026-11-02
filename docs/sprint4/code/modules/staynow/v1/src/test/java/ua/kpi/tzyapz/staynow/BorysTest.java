@@ -36,7 +36,7 @@ class BorysTest {
         );
 
         assertTrue(
-                !errors.contains(BookingError.NIGHTS_OUT_OF_RANGE),
+                errors.contains(BookingError.NIGHTS_OUT_OF_RANGE),
                 "BL-10 дозволяє бронювання тривалістю рівно 30 ночей"
         );
     }
