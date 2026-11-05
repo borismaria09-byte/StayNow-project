@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("ui")
-@DisplayName("Sprint 4: UI-тести UI-07–UI-08 (Виконавець: Михайленко Ростислав)")
+@DisplayName("Sprint 4: UI-тести UI-07–UI-08 (Виконавець: Михайленко Р.С.)")
 class MykhailenkoUiTest {
 
     private static final String BASE_URL = "https://automationintesting.online/";
@@ -59,14 +59,17 @@ class MykhailenkoUiTest {
     void adminLoginOpensRoomsSection() {
         driver.get(ADMIN_URL);
 
+        // передумова (жорстко): сторінка входу відкрилась
         visible(By.cssSelector("#username, input[placeholder='Enter username']")).sendKeys("admin");
         driver.findElement(By.cssSelector("#password, input[placeholder='Password']")).sendKeys("password");
         wait.until(ExpectedConditions.elementToBeClickable(
                 By.cssSelector("#doLogin, button[type='submit']"))).click();
 
+        // очікуємо на стан, який перевіряємо: перехід у розділ керування номерами
         wait.until(ExpectedConditions.urlContains("/admin/rooms"));
         WebElement logout = visible(By.xpath("//*[self::a or self::button][normalize-space()='Logout']"));
 
+        // кілька властивостей одного результату — м'яка перевірка
         assertAll("Успішний вхід до адмінпанелі",
                 () -> assertTrue(driver.getCurrentUrl().contains("/admin/rooms"),
                         "URL має вказувати на розділ номерів: " + driver.getCurrentUrl()),
@@ -93,6 +96,7 @@ class MykhailenkoUiTest {
 
         wait.until(ExpectedConditions.elementToBeClickable(By.id("submitContact"))).click();
 
+        // чекаємо саме на стан, який перевіряємо: поява тексту подяки з темою
         wait.until(ExpectedConditions.textToBePresentInElementLocated(
                 By.cssSelector("body"), "Question about booking"));
         String page = driver.findElement(By.cssSelector("body")).getText();
