@@ -1,121 +1,199 @@
-package ua.kpi.tzyapz.staynow;
 
+package ua.kpi.tzyapz.staynow.ui;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Tag("unit")
-@DisplayName("Sprint 4: Юніт-тести UT-17–UT-20 (Виконавець: Михайленко Р.С.)")
-class MykhailenkoTest {
+@Tag("ui")
+@DisplayName("Sprint 4: UI-тести UI-07–UI-08 (Виконавець: Михайленко Р.С.)")
+class MykhailenkoUiTest {
 
-    private BookingValidator validator;
-    private PriceCalculator calc;
-    private Availability availability;
+    private static final String BASE_URL = "https://automationintesting.online/";
+    private static final String ADMIN_URL = BASE_URL + "admin";
+
+    private WebDriver driver;
+    private WebDriverWait wait;
 
     @BeforeEach
-    void setUp() {
-        validator = new BookingValidator();
-        calc = new PriceCalculator();
-        availability = new Availability();
+    void openBrowser() {
+        ChromeOptions options = new ChromeOptions();
+
+        options.addArguments(
+                "--headless=new",
+                "--window-size=1280,900",
+                "--remote-allow-origins=*"
+        );
+
+        driver = new ChromeDriver(options);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
-    // Дефект модуля D2 (перевіряється дата виїзду, а не заїзду). Issue: #
-    @ParameterizedTest(name = "BL-10: заїзд {0} при сьогодні 2026-11-04 → помилка CHECK_IN_IN_PAST: {1}")
-    @CsvSource({
-            "2026-11-03, true",
-            "2026-11-04, false",
-            "2026-11-05, false"
-    })
-    @DisplayName("UT-17 | BL-10: заїзд раніше за сьогодні — CHECK_IN_IN_PAST; сьогодні й пізніше — допустимо")
-    void checkInBeforeTodayIsRejected(String checkInDate, boolean expectedError) {
-        // arrange: сьогодні 04.11.2026; виїзд завжди через 3 ночі після заїзду
-        LocalDate today = LocalDate.of(2026, 11, 4);
-        LocalDate checkIn = LocalDate.parse(checkInDate);
-        LocalDate checkOut = checkIn.plusDays(3);
-
-        // act
-        var errors = validator.validate(checkIn, checkOut, 1, 2, today);
-
-        // assert
-        assertEquals(expectedError, errors.contains(BookingError.CHECK_IN_IN_PAST),
-                "BL-10: дата заїзду не може бути раніше за поточну дату; отримано " + errors);
+    @AfterEach
+    void closeBrowser() {
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
-    @ParameterizedTest(name = "BL-40: {0} → коефіцієнт {1}")
-    @CsvSource({
-            "2026-05-31, 1.00",
-            "2026-06-01, 1.30",
-            "2026-08-31, 1.30",
-            "2026-09-01, 1.00",
-            "2026-12-19, 1.00",
-            "2026-12-20, 1.30",
-            "2027-01-10, 1.30",
-            "2027-01-11, 1.00",
-            "2027-01-31, 1.00",
-            "2027-02-01, 0.80",
-            "2027-03-31, 0.80",
-            "2027-04-01, 1.00",
-            "2026-10-31, 1.00",
-            "2026-11-01, 0.80",
-            "2026-11-30, 0.80",
-            "2026-12-01, 1.00"
-    })
-    @DisplayName("UT-18 | BL-40: сезонний коефіцієнт на межах сезонів")
-    void seasonFactorAtSeasonBoundaries(String date, String expectedFactor) {
-        BigDecimal factor = calc.seasonFactor(LocalDate.parse(date));
-
-        assertEquals(new BigDecimal(expectedFactor), factor);
+    private WebElement visible(By by) {
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(by)
+        );
     }
 
-    // Дефект модуля D4 (RoundingMode.DOWN замість HALF_UP). Issue: #__ 
-    @Test
-    @DisplayName("UT-19 | BL-50: вартість ночі округлюється HALF_UP (43.329 → 43.33)")
-    void nightPriceIsRoundedHalfUp() {
-        // arrange: 01.07.2026 — середа (не вихідна), високий сезон ×1.30
-        // 33.33 × 1.30 = 43.329 → HALF_UP до копійок = 43.33
-        BigDecimal baseRate = new BigDecimal("33.33");
-        LocalDate wednesdayInHighSeason = LocalDate.of(2026, 7, 1);
-
-        // act
-        BigDecimal price = calc.nightPrice(baseRate, wednesdayInHighSeason);
-
-        // assert
-        assertEquals(new BigDecimal("43.33"), price);
+    private void scrollTo(WebElement element) {
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block:'center'});",
+                element
+        );
     }
 
     @Test
-    @DisplayName("UT-20 | BL-70: бронювання на зайнятий інтервал — IllegalStateException, номер лишається зайнятим")
-    void bookingOverlappingStayThrows() {
-        // arrange: Single зайнятий 10.11–14.11.2026
-        availability.book("Single", LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 14));
+    @DisplayName("UI-07 / TC-020 / F-80: адміністратор з правильними даними потрапляє в розділ номерів, є Logout")
+    void adminLoginOpensRoomsSection() {
+        driver.get(ADMIN_URL);
 
-        // act + assert: перетин у середині інтервалу
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> availability.book("Single", LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 16)));
+        // Передумова: сторінка входу відкрилася
+        visible(By.cssSelector(
+                "#username, input[placeholder='Enter username']"
+        )).sendKeys("admin");
 
-        assertAll("Наслідки відмови",
-                () -> assertNotNull(ex.getMessage()),
-                () -> assertFalse(availability.isAvailable("Single",
-                        LocalDate.of(2026, 11, 11), LocalDate.of(2026, 11, 13)),
-                        "Номер має лишатися зайнятим"),
-                () -> assertEquals(1, availability.stays().size(),
-                        "Відхилене бронювання не має реєструватися"),
-                () -> assertTrue(availability.isAvailable("Double",
-                        LocalDate.of(2026, 11, 12), LocalDate.of(2026, 11, 16)),
-                        "Інший номер на ці дати вільний")
+        driver.findElement(By.cssSelector(
+                "#password, input[placeholder='Password']"
+        )).sendKeys("password");
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.cssSelector("#doLogin, button[type='submit']")
+        )).click();
+
+        // Очікуємо переходу до розділу керування номерами
+        wait.until(ExpectedConditions.urlContains("/admin/rooms"));
+
+        WebElement logout = visible(By.xpath(
+                "//*[self::a or self::button][normalize-space()='Logout']"
+        ));
+
+        assertAll("Успішний вхід до адмінпанелі",
+                () -> assertTrue(
+                        driver.getCurrentUrl().contains("/admin/rooms"),
+                        "URL має вказувати на розділ номерів: "
+                                + driver.getCurrentUrl()
+                ),
+                () -> assertTrue(
+                        logout.isDisplayed(),
+                        "Кнопка Logout має бути видимою"
+                ),
+                () -> assertFalse(
+                        driver.findElements(By.cssSelector(
+                                "#doLogin, input[placeholder='Enter username']"
+                        )).stream().anyMatch(WebElement::isDisplayed),
+                        "Форма входу не має лишатися на екрані"
+                )
+        );
+    }
+
+    @Test
+    @DisplayName("UI-08 / TC-014 / F-70: валідна контактна форма замінюється подякою з іменем і темою")
+    void contactFormShowsThankYouWithNameAndSubject() {
+        driver.get(BASE_URL);
+
+        // Заповнюємо контактну форму
+        WebElement name = visible(By.id("name"));
+        scrollTo(name);
+
+        name.sendKeys("John");
+
+        driver.findElement(By.id("email"))
+                .sendKeys("test@test.com");
+
+        driver.findElement(By.id("phone"))
+                .sendKeys("+380123456789");
+
+        driver.findElement(By.id("subject"))
+                .sendKeys("Question about booking");
+
+        driver.findElement(By.id("description"))
+                .sendKeys("I would like to ask about room availability.");
+
+        // Знаходимо кнопку Submit
+        By submitLocator = By.cssSelector(
+                "#contact form button.btn-primary"
+        );
+
+        WebElement submitButton = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(submitLocator)
+        );
+
+        // Прокручуємо сторінку до кнопки
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center', behavior: 'instant'});",
+                submitButton
+        );
+
+        // Перевіряємо, що кнопка знаходиться в області екрана
+        // і її не перекриває інший елемент
+        wait.until(d -> {
+            Boolean ready = (Boolean) ((JavascriptExecutor) d).executeScript("""
+                    const button = arguments[0];
+                    const r = button.getBoundingClientRect();
+                    const x = r.left + r.width / 2;
+                    const y = r.top + r.height / 2;
+
+                    return x >= 0 && x < window.innerWidth
+                        && y >= 0 && y < window.innerHeight
+                        && document.elementFromPoint(x, y) === button;
+                    """, submitButton);
+
+            return Boolean.TRUE.equals(ready);
+        });
+
+        // Натискаємо Submit
+        submitButton.click();
+
+        // Очікуємо появи тексту подяки
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.cssSelector("body"),
+                "Question about booking"
+        ));
+
+        String page = driver.findElement(
+                By.cssSelector("body")
+        ).getText();
+
+        // Перевіряємо результат відправлення форми
+        assertAll("Подяка замість форми",
+                () -> assertTrue(
+                        page.contains("John"),
+                        "Подяка має містити ім'я гостя"
+                ),
+                () -> assertTrue(
+                        page.contains("Question about booking"),
+                        "Подяка має містити тему"
+                ),
+                () -> assertTrue(
+                        driver.findElements(By.cssSelector(
+                                "#contact form button.btn-primary"
+                        )).stream().noneMatch(WebElement::isDisplayed),
+                        "Кнопка Submit має зникнути після відправлення"
+                )
         );
     }
 }
