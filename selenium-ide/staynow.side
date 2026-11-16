@@ -1,0 +1,39 @@
+{
+  "id": "b7c4a1d0-staynow-sprint4-ide",
+  "version": "2.0",
+  "name": "StayNow-UI-Automation",
+  "url": "https://automationintesting.online",
+  "tests": [
+    {
+      "id": "ui-04-booking-validation-ide",
+      "name": "UI-04_Booking_Form_Validation",
+      "commands": [
+        { "id": "1", "command": "open", "target": "/", "value": "" },
+        { "id": "2", "command": "setWindowSize", "target": "1280x900", "value": "" },
+        { "id": "3", "command": "waitForElementVisible", "target": "css=a.btn-primary[href*='reservation'], button.openBooking", "value": "15000" },
+        { "id": "4", "command": "click", "target": "css=a.btn-primary[href*='reservation'], button.openBooking", "value": "" },
+        { "id": "5", "command": "waitForElementVisible", "target": "name=firstname", "value": "10000" },
+        { "id": "6", "command": "assertElementPresent", "target": "name=firstname", "value": "" },
+        { "id": "7", "command": "type", "target": "name=firstname", "value": "Dmytro" },
+        { "id": "8", "command": "type", "target": "name=lastname", "value": "Voloshyn" },
+        { "id": "9", "command": "type", "target": "name=email", "value": "bad-email" },
+        { "id": "10", "command": "type", "target": "name=phone", "value": "123" },
+        { "id": "11", "command": "click", "target": "xpath=//button[contains(text(),'Book') or contains(text(),'Reserve')]", "value": "" },
+        { "id": "12", "command": "waitForElementVisible", "target": "css=.alert.alert-danger", "value": "10000" },
+        { "id": "13", "command": "verifyElementPresent", "target": "css=.alert.alert-danger", "value": "" }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "suite-staynow",
+      "name": "StayNow Smoke & Validation",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": ["ui-04-booking-validation-ide"]
+    }
+  ],
+  "urls": ["https://automationintesting.online"],
+  "plugins": []
+}
