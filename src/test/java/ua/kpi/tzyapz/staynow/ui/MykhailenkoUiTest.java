@@ -1,4 +1,3 @@
-
 package ua.kpi.tzyapz.staynow.ui;
 
 import org.junit.jupiter.api.AfterEach;
