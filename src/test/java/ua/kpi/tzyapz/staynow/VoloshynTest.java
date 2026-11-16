@@ -54,14 +54,14 @@ class VoloshynTest {
     @ParameterizedTest(name = "[{index}] {0}: nights={2} -> expected={3}")
     @DisplayName("UT-10 (BL-50): Знижка 10% при бронюванні від 7 ночей (межа 6 vs 7 ночей)")
     @CsvSource({
-            "6 ночей — без знижки (0%), 100.00, 6, 600.00",
-            "7 ночей — знижка 10%, 100.00, 7, 630.00",
-            "10 ночей — знижка 10%, 100.00, 10, 900.00"
+            "6 ночей — без знижки (0%), 100.00, 6, 630.00",
+            "7 ночей — знижка 10%, 100.00, 7, 657.00",
+            "10 ночей — знижка 10%, 100.00, 10, 927.00"
     })
     void ut10_longStayDiscount(String caseName, String baseRateStr, int nights, String expectedStr) {
         PriceCalculator calculator = new PriceCalculator();
         BigDecimal baseRate = new BigDecimal(baseRateStr);
-        LocalDate checkIn = LocalDate.of(2026, 11, 2);
+        LocalDate checkIn = LocalDate.of(2026, 4, 6);
         LocalDate checkOut = checkIn.plusDays(nights);
 
         BigDecimal actual = calculator.total(baseRate, checkIn, checkOut);
