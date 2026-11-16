@@ -13,94 +13,102 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Юніт-тести бізнес-логіки модуля StayNow v1 (Волошин Дмитро, група ФБ-41).
- * Закріплені ID: UT-09..UT-12 відповідно до docs/coverage-matrix.md.
+ * Відповідність docs/coverage-matrix.md:
+ * - UT-09 -> BL-20 (валідація email та телефону +380...)
+ * - UT-10 -> BL-50 (знижка 10% від 7 ночей)
+ * - UT-11 -> BL-60 (штраф за скасування: 7 / 6 / 3 / 2 дні)
+ * - UT-12 -> BL-70 (перевірка перетину дат бронювання)
  */
 class VoloshynTest {
 
-    @ParameterizedTest(name = "[{index}] {0}: guests={1}, isSuite={2} -> valid={3}")
-    @DisplayName("UT-09 (BL-20): Валідація кількості гостей (граничні значення 0, 1, 4, 5, 6, 7)")
+    @ParameterizedTest(name = "[{index}] {0}: email=''{1}'', phone=''{2}'' -> valid={3}")
+    @DisplayName("UT-09 (BL-20): Валідація email та телефону формату +380...")
     @CsvSource({
-            "Нуль гостей (невалідно), 0, false, false",
-            "Мінімум 1 гість (валідно), 1, false, true",
-            "Максимум 4 гості для стандартного номера (валідно), 4, false, true",
-            "Перевищення ліміту 5 гостей для стандартного номера (невалідно), 5, false, false",
-            "Максимум 6 гостей для Suite (валідно), 6, true, true",
-            "Перевищення ліміту 7 гостей для Suite (невалідно), 7, true, false"
+            "Порожній email, '', +380501234567, false",
+            "Email без @ (plainaddress), plainaddress, +380501234567, false",
+            "Email без домену (user@), user@, +380501234567, false",
+            "Некоректний телефон без +380, user@example.com, 0501234567, false",
+            "Коректні email та телефон +380, user@example.com, +380501234567, true"
     })
-    void ut09_validateGuestsBoundary(String caseName, int guests, boolean isSuite, boolean expectedValid) {
-        LocalDate checkIn = LocalDate.of(2026, 5, 10);
-        LocalDate checkOut = LocalDate.of(2026, 5, 12);
+    void ut09_validateContactInfo(String caseName, String email, String phone, boolean expectedValid) {
+        LocalDate today = LocalDate.of(2026, 11, 1);
+        LocalDate checkIn = LocalDate.of(2026, 11, 10);
+        LocalDate checkOut = LocalDate.of(2026, 11, 12);
 
-        List<BookingError> errors = BookingValidator.validate(checkIn, checkOut, guests, isSuite);
+        List<BookingError> errors = BookingValidator.validate(
+                checkIn, checkOut, 2, 4, today, email, phone
+        );
 
         if (expectedValid) {
             assertTrue(errors.isEmpty(),
-                    () -> "Очікувалась успішна валідація (" + caseName + "), але отримано помилки: " + errors);
+                    () -> "Очікувалась валідна контактна інформація (" + caseName + "), але отримано: " + errors);
         } else {
-            assertTrue(errors.contains(BookingError.INVALID_GUESTS),
-                    () -> "Очікувалась помилка INVALID_GUESTS (" + caseName + "), але отримано: " + errors);
+            boolean hasContactError = errors.contains(BookingError.INVALID_EMAIL)
+                    || errors.contains(BookingError.INVALID_PHONE);
+            assertTrue(hasContactError,
+                    () -> "Очікувалась помилка email або телефону (" + caseName + "), але отримано: " + errors);
         }
     }
 
-    @ParameterizedTest(name = "[{index}] {0}: baseRate={1}, checkIn={2}, nights={3} -> expected={4}")
-    @DisplayName("UT-10 (BL-30): Сезонний коефіцієнт +25% у піковий період (червень-серпень)")
+    @ParameterizedTest(name = "[{index}] {0}: nights={2} -> expected={3}")
+    @DisplayName("UT-10 (BL-50): Знижка 10% при бронюванні від 7 ночей (межа 6 vs 7 ночей)")
     @CsvSource({
-            "Низький сезон (травень, будній день), 100.00, 2026-05-11, 1, 100.00",
-            "Початок пікового сезону (1 червня, понеділок), 100.00, 2026-06-01, 1, 125.00",
-            "Середина пікового сезону (15 липня, середа, 2 ночі), 100.00, 2026-07-15, 2, 250.00",
-            "Кінець пікового сезону (31 серпня, понеділок), 100.00, 2026-08-31, 1, 125.00",
-            "Після пікового сезону (1 вересня, вівторок), 100.00, 2026-09-01, 1, 100.00"
+            "6 ночей — без знижки (0%), 100.00, 6, 600.00",
+            "7 ночей — знижка 10%, 100.00, 7, 630.00",
+            "10 ночей — знижка 10%, 100.00, 10, 900.00"
     })
-    void ut10_peakSeasonSurcharge(String caseName, String baseRateStr, String checkInStr, int nights, String expectedStr) {
+    void ut10_longStayDiscount(String caseName, String baseRateStr, int nights, String expectedStr) {
         BigDecimal baseRate = new BigDecimal(baseRateStr);
-        LocalDate checkIn = LocalDate.parse(checkInStr);
+        LocalDate checkIn = LocalDate.of(2026, 11, 2);
         LocalDate checkOut = checkIn.plusDays(nights);
 
-        BigDecimal actual = PriceCalculator.calculateTotal(baseRate, checkIn, checkOut, 1, false);
+        BigDecimal actual = PriceCalculator.calculate(baseRate, checkIn, checkOut);
         BigDecimal expected = new BigDecimal(expectedStr);
 
         assertEquals(expected, actual,
-                () -> "Невірний розрахунок сезонного коефіцієнта (" + caseName + ")");
+                () -> "Невірний розрахунок знижки 10% за тривалість проживання (" + caseName + ")");
     }
 
-    @ParameterizedTest(name = "[{index}] {0}: baseRate={1}, checkIn={2}, nights={3} -> expected={4}")
-    @DisplayName("UT-11 (BL-40): Націнка +15% за проживання у вихідні дні (п'ятниця та субота)")
+    @ParameterizedTest(name = "[{index}] {0}: daysBefore={1} -> expectedFee={3}")
+    @DisplayName("UT-11 (BL-60): Штраф за скасування бронювання (7 днів -> 0%, 6/3 дні -> 50%, 2 дні -> 100%)")
     @CsvSource({
-            "Четвер у низький сезон (без націнки), 100.00, 2026-05-14, 1, 100.00",
-            "П'ятниця у низький сезон (+15%), 100.00, 2026-05-15, 1, 115.00",
-            "Субота у низький сезон (+15%), 100.00, 2026-05-16, 1, 115.00",
-            "Неділя у низький сезон (без націнки), 100.00, 2026-05-17, 1, 100.00",
-            "П'ятниця + субота у низький сезон (2 ночі по +15%), 100.00, 2026-05-15, 2, 230.00"
+            "7 днів до заїзду (штраф 0%), 7, 1000.00, 0.00",
+            "6 днів до заїзду (штраф 50%), 6, 1000.00, 500.00",
+            "3 дні до заїзду (штраф 50%), 3, 1000.00, 500.00",
+            "2 дні до заїзду (штраф 100%), 2, 1000.00, 1000.00"
     })
-    void ut11_weekendSurcharge(String caseName, String baseRateStr, String checkInStr, int nights, String expectedStr) {
-        BigDecimal baseRate = new BigDecimal(baseRateStr);
-        LocalDate checkIn = LocalDate.parse(checkInStr);
-        LocalDate checkOut = checkIn.plusDays(nights);
+    void ut11_cancellationFee(String caseName, int daysBeforeCheckIn, String totalAmountStr, String expectedFeeStr) {
+        BigDecimal totalAmount = new BigDecimal(totalAmountStr);
+        LocalDate checkIn = LocalDate.of(2026, 11, 20);
+        LocalDate cancelDate = checkIn.minusDays(daysBeforeCheckIn);
 
-        BigDecimal actual = PriceCalculator.calculateTotal(baseRate, checkIn, checkOut, 1, false);
-        BigDecimal expected = new BigDecimal(expectedStr);
+        BigDecimal actualFee = PriceCalculator.cancellationFee(totalAmount, checkIn, cancelDate);
+        BigDecimal expectedFee = new BigDecimal(expectedFeeStr);
 
-        assertEquals(expected, actual,
-                () -> "Невірний розрахунок вихідного тарифу (" + caseName + ")");
+        assertEquals(expectedFee, actualFee,
+                () -> "Невірний розрахунок штрафу за скасування (" + caseName + ")");
     }
 
-    @ParameterizedTest(name = "[{index}] {0}: baseRate={1}, checkIn={2}, nights={3} -> expected={4}")
-    @DisplayName("UT-12 (BL-70): Математичне округлення HALF_UP до 2 знаків після коми")
+    @ParameterizedTest(name = "[{index}] {0}: [{1}..{2}] -> available={3}")
+    @DisplayName("UT-12 (BL-70): Перевірка перетину дат бронювань (існуюче 10.11–12.11)")
     @CsvSource({
-            "0.005 округляється вгору (10.02 * 1.25 = 12.525 -> 12.53), 10.02, 2026-07-01, 1, 12.53",
-            "0.0025 відкидається (10.01 * 1.25 = 12.5125 -> 12.51), 10.01, 2026-07-01, 1, 12.51",
-            "0.0075 округляється вгору (10.03 * 1.25 = 12.5375 -> 12.54), 10.03, 2026-07-01, 1, 12.54",
-            "Точне значення без дробового залишку (10.04 * 1.25 = 12.55), 10.04, 2026-07-01, 1, 12.55"
+            "Стикове заселення в день виїзду 12.11–14.11 (дозволено), 2026-11-12, 2026-11-14, true",
+            "Стиковий виїзд у день заїзду 08.11–10.11 (дозволено), 2026-11-08, 2026-11-10, true",
+            "Частковий перетин справа 11.11–13.11 (відхилено), 2026-11-11, 2026-11-13, false",
+            "Частковий перетин зліва 09.11–11.11 (відхилено), 2026-11-09, 2026-11-11, false",
+            "Повний збіг дат 10.11–12.11 (відхилено), 2026-11-10, 2026-11-12, false"
     })
-    void ut12_roundingHalfUp(String caseName, String baseRateStr, String checkInStr, int nights, String expectedStr) {
-        BigDecimal baseRate = new BigDecimal(baseRateStr);
-        LocalDate checkIn = LocalDate.parse(checkInStr);
-        LocalDate checkOut = checkIn.plusDays(nights);
+    void ut12_bookingDateOverlap(String caseName, String newCheckInStr, String newCheckOutStr, boolean expectedAvailable) {
+        String roomId = "ROOM-101";
+        Availability availability = new Availability();
+        availability.book(roomId, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 12));
 
-        BigDecimal actual = PriceCalculator.calculateTotal(baseRate, checkIn, checkOut, 1, false);
-        BigDecimal expected = new BigDecimal(expectedStr);
+        LocalDate newCheckIn = LocalDate.parse(newCheckInStr);
+        LocalDate newCheckOut = LocalDate.parse(newCheckOutStr);
 
-        assertEquals(expected, actual,
-                () -> "Помилка округлення HALF_UP (" + caseName + ")");
+        boolean actualAvailable = availability.isAvailable(roomId, newCheckIn, newCheckOut);
+
+        assertEquals(expectedAvailable, actualAvailable,
+                () -> "Невірна перевірка перетину дат бронювання (" + caseName + ")");
     }
 }
