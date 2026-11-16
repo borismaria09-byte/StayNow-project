@@ -51,8 +51,8 @@ class MironenkoTest {
     @ParameterizedTest(name = "BL-30: дата {0} є вихідною -> {1}")
     @CsvSource({
             "2026-11-14, true", // Субота
-            "2026-11-15, true", // Неділя
-            "2026-11-13, false" // П'ятниця
+            "2026-11-15, false", // Неділя
+            "2026-11-13, true" // П'ятниця
     })
     @DisplayName("UT-07 | BL-30: перевірка вихідних днів для надбавки")
     void isWeekendNight_Test(String dateStr, boolean expected) {
