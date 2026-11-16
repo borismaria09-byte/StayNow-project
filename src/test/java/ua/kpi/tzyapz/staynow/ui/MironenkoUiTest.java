@@ -14,11 +14,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("ui")
-@DisplayName("Sprint 4: UI-тести (Виконавець: Міроненко Микита)")
+@DisplayName("Sprint 4: UI-тест UI-03 (Виконавець: Міроненко Микита)")
 class MironenkoUiTest {
 
     private static final String BASE_URL = "https://automationintesting.online/";
@@ -41,31 +40,24 @@ class MironenkoUiTest {
     }
 
     @Test
-    @DisplayName("UI-03 | Перевірка завантаження головної сторінки та заголовку готелю")
-    void homePageLoadsSuccessfully() {
-        driver.get(BASE_URL);
-        
-        // Чекаємо на появу назви готелю у шапці за допомогою явного очікування
-        String brandName = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".hotel-name"))
+    @DisplayName("UI-03 / TC-003: Створення бронювання номера з коректними даними")
+    void successfulBookingShowsConfirmation() {
+        driver.get(BASE_URL + "reservation/1?checkin=2027-04-05&checkout=2027-04-07");
+
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("doReservation"))).click();
+
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("firstname"))).sendKeys("T3-Test");
+        driver.findElement(By.name("lastname")).sendKeys("T3-Testenko");
+        driver.findElement(By.name("email")).sendKeys("t3@example.com");
+        driver.findElement(By.name("phone")).sendKeys("+380001234567");
+
+        driver.findElement(By.cssSelector("button.btn-primary")).click();
+
+        String confirmationText = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".confirmation-modal, .card-body"))
         ).getText();
 
-        assertTrue(brandName.contains("Shady Meadows") || !brandName.isEmpty(), 
-                "Назва готелю має відображатися на сторінці");
-    }
-
-    @Test
-    @DisplayName("UI-04 | Перевірка відкриття сторінки входу в адмінпанель")
-    void adminLinkOpensLogin() {
-        driver.get(BASE_URL);
-
-        // Клікаємо на посилання Admin у меню
-        wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Admin"))).click();
-
-        // Перевіряємо, що перейшли на сторінку /admin
-        wait.until(ExpectedConditions.urlContains("/admin"));
-        
-        String currentUrl = driver.getCurrentUrl();
-        assertTrue(currentUrl.contains("/admin"), "URL повинен містити /admin");
+        assertTrue(confirmationText.contains("Booking Confirmed"),
+                "Має з'явитися повідомлення 'Booking Confirmed'");
     }
 }
