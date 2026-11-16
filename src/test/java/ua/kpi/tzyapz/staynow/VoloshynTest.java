@@ -31,11 +31,12 @@ class VoloshynTest {
             "Коректні email та телефон +380, user@example.com, +380501234567, true"
     })
     void ut09_validateContactInfo(String caseName, String email, String phone, boolean expectedValid) {
+        BookingValidator validator = new BookingValidator();
         LocalDate today = LocalDate.of(2026, 11, 1);
         LocalDate checkIn = LocalDate.of(2026, 11, 10);
         LocalDate checkOut = LocalDate.of(2026, 11, 12);
 
-        List<BookingError> errors = BookingValidator.validate(
+        List<BookingError> errors = validator.validate(
                 checkIn, checkOut, 2, 4, today, email, phone
         );
 
@@ -58,11 +59,12 @@ class VoloshynTest {
             "10 ночей — знижка 10%, 100.00, 10, 900.00"
     })
     void ut10_longStayDiscount(String caseName, String baseRateStr, int nights, String expectedStr) {
+        PriceCalculator calculator = new PriceCalculator();
         BigDecimal baseRate = new BigDecimal(baseRateStr);
         LocalDate checkIn = LocalDate.of(2026, 11, 2);
         LocalDate checkOut = checkIn.plusDays(nights);
 
-        BigDecimal actual = PriceCalculator.calculate(baseRate, checkIn, checkOut);
+        BigDecimal actual = calculator.total(baseRate, checkIn, checkOut);
         BigDecimal expected = new BigDecimal(expectedStr);
 
         assertEquals(expected, actual,
@@ -78,11 +80,10 @@ class VoloshynTest {
             "2 дні до заїзду (штраф 100%), 2, 1000.00, 1000.00"
     })
     void ut11_cancellationFee(String caseName, int daysBeforeCheckIn, String totalAmountStr, String expectedFeeStr) {
+        Availability availability = new Availability();
         BigDecimal totalAmount = new BigDecimal(totalAmountStr);
-        LocalDate checkIn = LocalDate.of(2026, 11, 20);
-        LocalDate cancelDate = checkIn.minusDays(daysBeforeCheckIn);
 
-        BigDecimal actualFee = PriceCalculator.cancellationFee(totalAmount, checkIn, cancelDate);
+        BigDecimal actualFee = availability.cancellationFee(totalAmount, daysBeforeCheckIn);
         BigDecimal expectedFee = new BigDecimal(expectedFeeStr);
 
         assertEquals(expectedFee, actualFee,
