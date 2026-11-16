@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("unit")
-@DisplayName("Sprint 4: Юніт-тести (Виконавець: Міроненко Микита)")
+@DisplayName("Sprint 4: Юніт-тести UT-05–UT-08 (Виконавець: Міроненко Микита)")
 class MironenkoTest {
 
     private BookingValidator validator;
@@ -30,7 +30,7 @@ class MironenkoTest {
     }
 
     @Test
-    @DisplayName("UT-21 | BL-10: дата виїзду раніша за дату заїзду повертає помилку")
+    @DisplayName("UT-05 | BL-10: дата виїзду раніша за дату заїзду повертає помилку")
     void validate_CheckOutBeforeCheckIn_ReturnsError() {
         LocalDate today = LocalDate.of(2026, 11, 10);
         LocalDate checkIn = LocalDate.of(2026, 11, 15);
@@ -43,7 +43,7 @@ class MironenkoTest {
 
     @ParameterizedTest(name = "BL-20: невалідний email {0} повертає false")
     @ValueSource(strings = {"t3.testexample.com", "t3.test@example", ""})
-    @DisplayName("UT-22 | BL-20: валідація невалідного email")
+    @DisplayName("UT-06 | BL-20: валідація невалідного email")
     void isValidEmail_InvalidEmail_ReturnsFalse(String email) {
         assertFalse(validator.isValidEmail(email));
     }
@@ -54,14 +54,14 @@ class MironenkoTest {
             "2026-11-15, true", // Неділя
             "2026-11-13, false" // П'ятниця
     })
-    @DisplayName("UT-23 | BL-30: перевірка вихідних днів для надбавки")
-    value_isWeekendNight(String dateStr, boolean expected) {
+    @DisplayName("UT-07 | BL-30: перевірка вихідних днів для надбавки")
+    void isWeekendNight_Test(String dateStr, boolean expected) {
         LocalDate date = LocalDate.parse(dateStr);
         assertEquals(expected, calc.isWeekendNight(date));
     }
 
     @Test
-    @DisplayName("UT-24 | BL-60: скасування за 7 днів - безкоштовно (0%)")
+    @DisplayName("UT-08 | BL-60: скасування за 7 днів - безкоштовно (0%)")
     void cancellationFee_7Days_IsFree() {
         BigDecimal total = new BigDecimal("1000.00");
         BigDecimal fee = availability.cancellationFee(total, 7);
