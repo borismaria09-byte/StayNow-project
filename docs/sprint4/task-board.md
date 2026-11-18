@@ -46,6 +46,6 @@
 | 25 | АО | Михайленко Ростислав | Реалізувати JUnit-тести UT-17–UT-20 | 1.5 | 1.3 | Виконано | до 13.11 | `src/test/java/ua/kpi/tzyapz/staynow/MykhailenkoTest.java` | Борис М. |
 | 26 | АО | Михайленко Ростислав | Реалізувати UI-тести UI-07–UI-08 з `@Tag("ui")`, `@DisplayName`, headless-режимом та явними очікуваннями | 1.5 | 1.2 | Виконано | до 14.11 | `src/test/java/ua/kpi/tzyapz/staynow/ui/MykhailenkoUiTest.java` | Борис М. |
 | 27 | АО | Михайленко Ростислав | Клонувати репозиторій у чисту папку та, користуючись лише README, виконати `mvn -v`, `mvn clean test` і `mvn test -DexcludedGroups=none` | 1.0 | 1.0 | Виконано | до 16.11 | `docs/sprint4/reproduction-protocol.md` | Проценко Д.-С. |
-| 28 | АО | Михайленко Ростислав | Скласти протокол відтворення «з нуля» та незалежно перевірити матрицю покриття, зв'язок дефектів із тестами і підсумок Surefire | 1.5 | — | Заплановано | до 16.11 | `docs/sprint4/reproduction-protocol.md`, `docs/sprint4/coverage-matrix.md`, `docs/sprint4/surefire-summary.md` | Проценко Д.-С. |
+| 28 | АО | Михайленко Ростислав | Скласти протокол відтворення «з нуля» та незалежно перевірити матрицю покриття, зв'язок дефектів із тестами і підсумок Surefire | 1.5 | 1.8 | Виконано | до 16.11 | `docs/sprint4/reproduction-protocol.md`, `docs/sprint4/coverage-matrix.md`, `docs/sprint4/surefire-summary.md` | Проценко Д.-С. |
 
 
