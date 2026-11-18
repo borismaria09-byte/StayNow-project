@@ -1,11 +1,13 @@
 package ua.kpi.tzyapz.staynow.ui;
 
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -51,7 +53,16 @@ class ProtsenkoUiTest {
         WebElement bookNowLink = wait.until(
                 ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*='/reservation/']"))
         );
-        bookNowLink.click();
+        
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block:'center'});",
+                bookNowLink
+        );
+        
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();",
+                bookNowLink
+        );
 
         wait.until(ExpectedConditions.urlContains("/reservation/"));
 
@@ -80,9 +91,18 @@ class ProtsenkoUiTest {
         driver.get(BASE_URL);
 
         WebElement bookNowLink = wait.until(
-                ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*='/reservation/']"))
+        ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*='/reservation/']"))
         );
-        bookNowLink.click();
+        
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block:'center'});",
+                bookNowLink
+        );
+        
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();",
+                bookNowLink
+        );
 
         wait.until(ExpectedConditions.urlContains("/reservation/"));
 
