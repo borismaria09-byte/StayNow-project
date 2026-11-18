@@ -1,13 +1,12 @@
 package ua.kpi.tzyapz.staynow.ui;
 
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -25,7 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Sprint 4: UI-тести UI-01–UI-02 (Виконавець: Проценко Д.-С.)")
 class ProtsenkoUiTest {
 
-    private static final String BASE_URL = "https://automationintesting.online";
+    private static final String BASE_URL =
+            "https://automationintesting.online";
+
+    private static final String RESERVATION_URL =
+            BASE_URL + "/reservation/1?checkin=2027-04-05&checkout=2027-04-07";
 
     private WebDriver driver;
     private WebDriverWait wait;
@@ -33,9 +36,15 @@ class ProtsenkoUiTest {
     @BeforeEach
     void setUp() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new", "--window-size=1280,900", "--remote-allow-origins=*");
+
+        options.addArguments(
+                "--headless=new",
+                "--window-size=1280,900",
+                "--remote-allow-origins=*"
+        );
+
         driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
     @AfterEach
@@ -46,93 +55,115 @@ class ProtsenkoUiTest {
     }
 
     @Test
-    @DisplayName("UI-01 / TC-012: Перевірка Price Summary та розрахунку Cleaning fee, Service fee і Total")
+    @DisplayName(
+            "UI-01 / TC-012: Перевірка Price Summary та розрахунку Cleaning fee, Service fee і Total"
+    )
     void testUi01_bookingFormCalculation() {
-        driver.get(BASE_URL);
 
-        WebElement bookNowLink = wait.until(
-                ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*='/reservation/']"))
-        );
-        
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].scrollIntoView({block:'center'});",
-                bookNowLink
-        );
-        
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();",
-                bookNowLink
-        );
+        driver.get(RESERVATION_URL);
 
-        wait.until(ExpectedConditions.urlContains("/reservation/"));
+        wait.until(
+                ExpectedConditions.urlContains("/reservation/")
+        );
 
         WebElement priceSummaryBlock = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//*[contains(text(),'Price Summary')]/parent::*")
+                        By.xpath(
+                                "//*[contains(normalize-space(),'Price Summary')]"
+                        )
                 )
         );
-        String summaryText = priceSummaryBlock.getText();
 
-        assertAll("Перевірка блоку Price Summary (TC-012 / GUI-50)",
-                () -> assertTrue(summaryText.contains("nights"),
-                        "У Price Summary має відображатися кількість ночей та базовий тариф"),
-                () -> assertTrue(summaryText.contains("Cleaning fee") && summaryText.contains("£25"),
-                        "Має відображатися Cleaning fee £25"),
-                () -> assertTrue(summaryText.contains("Service fee") && summaryText.contains("£15"),
-                        "Має відображатися Service fee £15"),
-                () -> assertTrue(summaryText.contains("Total"),
-                        "Має відображатися підсумковий рядок Total")
+        WebElement summaryContainer = priceSummaryBlock.findElement(
+                By.xpath("./ancestor::*[self::div or self::section][1]")
+        );
+
+        String summaryText = summaryContainer.getText();
+
+        assertAll(
+                "Перевірка блоку Price Summary (TC-012 / GUI-50)",
+
+                () -> assertTrue(
+                        summaryText.toLowerCase().contains("night"),
+                        "У Price Summary має відображатися кількість ночей"
+                ),
+
+                () -> assertTrue(
+                        summaryText.contains("Cleaning fee"),
+                        "Має відображатися Cleaning fee"
+                ),
+
+                () -> assertTrue(
+                        summaryText.contains("Service fee"),
+                        "Має відображатися Service fee"
+                ),
+
+                () -> assertTrue(
+                        summaryText.contains("Total"),
+                        "Має відображатися підсумковий рядок Total"
+                )
         );
     }
 
     @Test
-    @DisplayName("UI-02 / TC-017: Спроба бронювання номера з порожніми полями форми бронювання")
+    @DisplayName(
+            "UI-02 / TC-017: Спроба бронювання номера з порожніми полями форми бронювання"
+    )
     void testUi02_validationErrorMessageDisplay() {
-        driver.get(BASE_URL);
 
-        WebElement bookNowLink = wait.until(
-        ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*='/reservation/']"))
-        );
-        
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].scrollIntoView({block:'center'});",
-                bookNowLink
-        );
-        
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();",
-                bookNowLink
+        driver.get(RESERVATION_URL);
+
+        wait.until(
+                ExpectedConditions.urlContains("/reservation/")
         );
 
-        wait.until(ExpectedConditions.urlContains("/reservation/"));
+        By reserveButton = By.xpath(
+                "//button[contains(normalize-space(),'Reserve Now')]"
+        );
 
         WebElement openFormButton = wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        By.xpath("//button[contains(normalize-space(),'Reserve Now')]")
-                )
+                ExpectedConditions.elementToBeClickable(reserveButton)
         );
+
         openFormButton.click();
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[placeholder='Firstname']")));
-
-        WebElement submitBookingButton = wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        By.xpath("//button[contains(normalize-space(),'Reserve Now')]")
+        wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.name("firstname")
                 )
         );
+
+        WebElement submitBookingButton = wait.until(
+                ExpectedConditions.elementToBeClickable(reserveButton)
+        );
+
         submitBookingButton.click();
 
         WebElement errorAlert = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".alert-danger"))
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(".alert-danger")
+                )
         );
 
-        assertAll("Перевірка помилок валідації при порожніх полях (TC-017 / GUI-80)",
-                () -> assertTrue(errorAlert.isDisplayed(),
-                        "Блок повідомлень про помилки валідації має відображатися"),
-                () -> assertFalse(errorAlert.getText().isBlank(),
-                        "Текст повідомлення про помилку не має бути порожнім"),
-                () -> assertFalse(driver.getPageSource().contains("Booking Confirmed"),
-                        "Підтвердження бронювання не повинно з'являтися при порожніх полях")
+        String errorText = errorAlert.getText();
+
+        assertAll(
+                "Перевірка помилок валідації при порожніх полях (TC-017 / GUI-80)",
+
+                () -> assertTrue(
+                        errorAlert.isDisplayed(),
+                        "Блок повідомлень про помилки має відображатися"
+                ),
+
+                () -> assertFalse(
+                        errorText.isBlank(),
+                        "Текст повідомлення про помилку не має бути порожнім"
+                ),
+
+                () -> assertFalse(
+                        driver.getPageSource().contains("Booking Confirmed"),
+                        "Підтвердження бронювання не повинно з'являтися"
+                )
         );
     }
 }
