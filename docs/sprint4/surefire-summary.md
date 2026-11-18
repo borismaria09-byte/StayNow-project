@@ -35,13 +35,13 @@ Tests run: 54, Failures: 13, Errors: 0, Skipped: 0
 ### Запуск 2: `mvn test -DexcludedGroups=none` (Unit + UI тести)
 **Вивід консолі:**
 ```text
-Tests run: 62, Failures: <фактичне>, Errors: <фактичне>, Skipped: 0
+Tests run: 62, Failures: 13, Errors: 6, Skipped: 0
 ```
 | Метрика | Значення |
 |---|---|
 | **Усього виконано тестів** | **62** |
-| **Падіння (Failures)** | **<фактичне>** |
-| **Помилки (Errors)** | **<фактичне>** |
+| **Падіння (Failures)** | **13** |
+| **Помилки (Errors)** | **6** |
 | **Статус збірки** | **BUILD FAILURE** |
 
 ---
