@@ -12,7 +12,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Борис Марія** | macOS 26.6.2, aarch64 | Maven 3.10.0 | Java 27.0.1.0.3 | 7 tests, BUILD SUCCESS | Є |
 | **Проценко Давид-Сергій** | Linux, amd64 | Maven 3.10.0 | Java 25.0.5 | 7 tests, BUILD SUCCESS | Є |
-| **Міроненко Микита** | Windows 10, amd64 | Maven через IntelliJ | Java 27.0.1.0.3 | 7 tests, BUILD SUCCESS | Є |
+| **Міроненко Микита** | Windows 10, amd64 | Maven 3.10.0 | Java 27.0.1.0.3 | 7 tests, BUILD SUCCESS | Є |
 | **Волошин Дмитро** | Windows 11, x64 | Maven 3.10.0 | Java 21 LTS | 7 tests, BUILD SUCCESS | Є |
 | **Михайленко Ростислав** | Windows 11, x64 | Maven 3.10.0 | Microsoft JDK 21.0.13 | 7 tests, BUILD SUCCESS | Є |
 
