@@ -13,12 +13,12 @@
 
 ### Команди для запуску тестів
 
-1. Повний запуск усіх тестів (включно з UI у Headless-режимі):
+1. Запуск тестів без групи `ui` (тільки модульні тести):
 ```bash
 mvn clean test
 ```
 
-2. Примусовий запуск усіх тегованих тест-груп:
+2. Запуск повного набору тестів, включно з UI (у Headless-режимі):
 ```bash
 mvn test -DexcludedGroups=none
 ```
@@ -30,7 +30,7 @@ mvn test -DexcludedGroups=none
   - `MykhailenkoTest.java` — Михайленко
   - `ProtsenkoTest.java` — Проценко Давид-Сергій (`UT-01` – `UT-04`)
   - `VoloshynTest.java` — Волошин
-- **UI-тести (Selenium 4):** `src/test/java/ua/kpi/tzyapz/staynow/*UiTest.java` (`UI-01` – `UI-08`)
+- **UI-тести (Selenium 4):** `src/test/java/ua/kpi/tzyapz/staynow/ui/*UiTest.java` (`UI-01` – `UI-08`)
   - `ProtsenkoUiTest.java` — Проценко Давид-Сергій (`UI-01` – `UI-02`)
 
 ---
@@ -53,7 +53,7 @@ mvn test -DexcludedGroups=none
 
 - **Матриця покриття BL:** [`docs/sprint4/coverage-matrix.md`](docs/sprint4/coverage-matrix.md)
 - **Перелік UI-сценаріїв:** [`docs/sprint4/ui-scenarios.md`](docs/sprint4/ui-scenarios.md)
-- **Підсумок Maven Surefire:** [`docs/sprint4/surefire-summary.md`](docs/sprint4/surefire-summary.md) (`Tests run: 54, Failures: 13, Errors: 0, Skipped: 0`)
+- **Підсумок Maven Surefire:** [`docs/sprint4/surefire-summary.md`](docs/sprint4/surefire-summary.md)
 - **Звіт аудиту спринту:** [`docs/sprint4/audit-report.md`](docs/sprint4/audit-report.md)
 
 ### 3. Виявлені дефекти модуля (мітка `module`)
