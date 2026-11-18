@@ -72,9 +72,9 @@ mvn test -DexcludedGroups=none
 | **#12** | BL-10 | `MykhailenkoTest.checkInBeforeTodayIsRejected` | Система приймає дату заїзду в минулому | Major | 
 | **#13** | BL-50 | `MykhailenkoTest.nightPriceIsRoundedHalfUp` | Некоректне округлення вартості бронювання (`43.32` замість `43.33`) | Major | 
 | **#19** | BL-10 | `BorysTest.thirtyNightsAreAllowed` | Система відхиляє валідне бронювання тривалістю рівно 30 ночей | Major | 
-| **#25** | BL-70 | `BorysTest.checkInOnPreviousCheckOutDateIsAvailable`, `VoloshynTest.ut12_bookingDateOverlap` | Помилка перевірки перетину дат та заїзду в день виїзду попереднього гостя | Major | 
-| **#26** | BL-40 | `BorysTest.fridayNightHasWeekendSurcharge`, `MironenkoTest.isWeekendNight_Test` | Невірне визначення вихідних ночей та відсутність націнки вихідного дня | Major | 
-| **#28** | BL-50 / BL-60 | `VoloshynTest.ut10_longStayDiscount`, `BorysTest.cancellationExactlySevenDaysBeforeIsFree`, `MironenkoTest.cancellationFee_7Days_IsFree`, `VoloshynTest.ut11_cancellationFee` | Некоректний розрахунок знижки або штрафів | Major | 
+| **#25** | BL-60 | `VoloshynTest.ut11_cancellationFee` | При скасуванні рівно за 7 днів нараховується штраф `500.00` замість `0.00` | Major |
+| **#26** | BL-70 | `VoloshynTest.ut12_bookingDateOverlap` | Стикове бронювання помилково визначається як перетин дат | Major |
+| **#28** | BL-30 | `VoloshynTest.ut10_longStayDiscount` | Не застосовується надбавка +15% для п'ятниці | Major |
 
 ### 4. Висновок про стан модуля v1
 
