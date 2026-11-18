@@ -1,3 +1,4 @@
+
 package ua.kpi.tzyapz.staynow.ui;
 
 import org.junit.jupiter.api.AfterEach;
@@ -33,7 +34,12 @@ class MykhailenkoUiTest {
     @BeforeEach
     void openBrowser() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new", "--window-size=1280,900", "--remote-allow-origins=*");
+        options.addArguments(
+                "--headless=new",
+                "--window-size=1280,900",
+                "--remote-allow-origins=*"
+        );
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
@@ -46,12 +52,16 @@ class MykhailenkoUiTest {
     }
 
     private WebElement visible(By by) {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(by));
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(by)
+        );
     }
 
     private void scrollTo(WebElement element) {
         ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].scrollIntoView({block:'center'});", element);
+                "arguments[0].scrollIntoView({block:'center'});",
+                element
+        );
     }
 
     @Test
@@ -59,24 +69,42 @@ class MykhailenkoUiTest {
     void adminLoginOpensRoomsSection() {
         driver.get(ADMIN_URL);
 
-        // передумова: сторінка входу відкрилась
-        visible(By.cssSelector("#username, input[placeholder='Enter username']")).sendKeys("admin");
-        driver.findElement(By.cssSelector("#password, input[placeholder='Password']")).sendKeys("password");
-        wait.until(ExpectedConditions.elementToBeClickable(
-                By.cssSelector("#doLogin, button[type='submit']"))).click();
+        // Перевіряємо відкриття сторінки входу
+        visible(By.cssSelector(
+                "#username, input[placeholder='Enter username']"
+        )).sendKeys("admin");
 
-        // очікуємо перехід у розділ керування номерами
+        driver.findElement(By.cssSelector(
+                "#password, input[placeholder='Password']"
+        )).sendKeys("password");
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.cssSelector("#doLogin, button[type='submit']")
+        )).click();
+
+        // Очікуємо перехід до розділу керування номерами
         wait.until(ExpectedConditions.urlContains("/admin/rooms"));
-        WebElement logout = visible(By.xpath("//*[self::a or self::button][normalize-space()='Logout']"));
+
+        WebElement logout = visible(By.xpath(
+                "//*[self::a or self::button][normalize-space()='Logout']"
+        ));
 
         assertAll("Успішний вхід до адмінпанелі",
-                () -> assertTrue(driver.getCurrentUrl().contains("/admin/rooms"),
-                        "URL має вказувати на розділ номерів: " + driver.getCurrentUrl()),
-                () -> assertTrue(logout.isDisplayed(), "Кнопка Logout має бути видимою"),
-                () -> assertFalse(driver.findElements(
-                                By.cssSelector("#doLogin, input[placeholder='Enter username']")).stream()
-                                .anyMatch(WebElement::isDisplayed),
-                        "Форма входу не має лишатися на екрані")
+                () -> assertTrue(
+                        driver.getCurrentUrl().contains("/admin/rooms"),
+                        "URL має вказувати на розділ номерів: "
+                                + driver.getCurrentUrl()
+                ),
+                () -> assertTrue(
+                        logout.isDisplayed(),
+                        "Кнопка Logout має бути видимою"
+                ),
+                () -> assertFalse(
+                        driver.findElements(By.cssSelector(
+                                "#doLogin, input[placeholder='Enter username']"
+                        )).stream().anyMatch(WebElement::isDisplayed),
+                        "Форма входу не має лишатися на екрані"
+                )
         );
     }
 
@@ -85,26 +113,67 @@ class MykhailenkoUiTest {
     void contactFormShowsThankYouWithNameAndSubject() {
         driver.get(BASE_URL);
 
+        // Заповнюємо контактну форму
         WebElement name = visible(By.id("name"));
         scrollTo(name);
+
         name.sendKeys("John");
-        driver.findElement(By.id("email")).sendKeys("test@test.com");
-        driver.findElement(By.id("phone")).sendKeys("+380123456789");
-        driver.findElement(By.id("subject")).sendKeys("Question about booking");
-        driver.findElement(By.id("description")).sendKeys("I would like to ask about room availability.");
 
-        wait.until(ExpectedConditions.elementToBeClickable(By.id("submitContact"))).click();
+        driver.findElement(By.id("email"))
+                .sendKeys("test@test.com");
 
-        // чекаємо на появу тексту подяки
-        wait.until(ExpectedConditions.textToBePresentInElementLocated(
-                By.cssSelector("body"), "Question about booking"));
-        String page = driver.findElement(By.cssSelector("body")).getText();
+        driver.findElement(By.id("phone"))
+                .sendKeys("+380123456789");
 
+        driver.findElement(By.id("subject"))
+                .sendKeys("Question about booking");
+
+        driver.findElement(By.id("description"))
+                .sendKeys("I would like to ask about room availability.");
+
+        // Знаходимо кнопку Submit та прокручуємо до неї
+        WebElement submit = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("//button[normalize-space()='Submit']")
+                )
+        );
+
+        scrollTo(submit);
+
+        // Натискаємо кнопку через JavaScript
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();",
+                submit
+        );
+
+        // Очікуємо появу повідомлення подяки
+        wait.until(
+                ExpectedConditions.textToBePresentInElementLocated(
+                        By.cssSelector("body"),
+                        "Question about booking"
+                )
+        );
+
+        String page = driver.findElement(
+                By.cssSelector("body")
+        ).getText();
+
+        // Перевіряємо результат відправлення форми
         assertAll("Подяка замість форми",
-                () -> assertTrue(page.contains("John"), "Подяка має містити ім'я гостя"),
-                () -> assertTrue(page.contains("Question about booking"), "Подяка має містити тему"),
-                () -> assertTrue(driver.findElements(By.id("submitContact")).isEmpty(),
-                        "Форма (кнопка Submit) має зникнути")
+                () -> assertTrue(
+                        page.contains("John"),
+                        "Подяка має містити ім'я гостя"
+                ),
+                () -> assertTrue(
+                        page.contains("Question about booking"),
+                        "Подяка має містити тему"
+                ),
+                () -> assertTrue(
+                        driver.findElements(
+                                By.xpath("//button[normalize-space()='Submit']")
+                        ).isEmpty(),
+                        "Форма (кнопка Submit) має зникнути"
+                )
         );
     }
 }
