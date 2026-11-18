@@ -72,3 +72,36 @@
 | **UT-11** | `BL-60` | `VoloshynTest#ut11_cancellationFee` |  **FAIL** (1/4) | **Дефект продукту (`module`)** | Для `7` днів до заїзду `Availability.cancellationFee()` повернув `500.00` (`50%`) замість `0.00` (`0%`) — порушено межу `>= 7 днів` у `BL-60` (використано `> 7`). |
 | **UT-12** | `BL-70` | `VoloshynTest#ut12_bookingDateOverlap` |  **FAIL** (2/5) | **Дефект продукту (`module`)** | Стикові інтервали `12.11–14.11` та `08.11–10.11` (виїзд = заїзд іншого) повернули `false` замість `true` — у `Availability.isAvailable()` використано нестрогі нерівності (`<=` / `>=`). |
 | **UI-04** | UI-сценарій бронювання | `VoloshynUiTest` |  **PASS** | Вимогу виконано | End-to-end UI-сценарій стабільно виконується без помилок тесту чи середовища. |
+
+
+---
+
+## 5. Перевірка звітів про дефекти
+
+**Виконавець:** Борис Марія (СМ / рецензент)
+
+Перевірено фінальні звіти про дефекти Sprint 4 на повноту оформлення, наявність `Severity`, `Priority`, мітки `module` та простежуваність `BL-вимога → автоматизований тест → GitHub Issue`.
+
+| Issue | BL-вимога | Автоматизований тест | Severity | Priority | `module` | Простежуваність | Результат |
+|---|---|---|---|---|---|---|---|
+| **#12** | BL-10 | `UT-17 / MykhailenkoTest#checkInBeforeTodayIsRejected` | Major | P2 | Так | `BL-10 → UT-17 → #12` | Пройдено |
+| **#13** | BL-50 | `UT-19 / MykhailenkoTest#nightPriceIsRoundedHalfUp` | Major | P2 | Так | `BL-50 → UT-19 → #13` | Пройдено |
+| **#19** | BL-10 | `UT-13 / BorysTest#thirtyNightsAreAllowed` | Major | P2 | Так | `BL-10 → UT-13 → #19` | Пройдено |
+| **#25** | BL-60 | `UT-11 / VoloshynTest#ut11_cancellationFee` | Major | P2 | Так | `BL-60 → UT-11 → #25` | Пройдено |
+| **#26** | BL-70 | `UT-12 / VoloshynTest#ut12_bookingDateOverlap` | Major | P2 | Так | `BL-70 → UT-12 → #26` | Пройдено |
+| **#28** | BL-30 | `UT-10 / VoloshynTest#ut10_longStayDiscount` | Major | P2 | Так | `BL-30 → UT-10 → #28` | Пройдено |
+
+Під час review перевірено:
+
+- наявність BL-вимоги;
+- наявність відповідного автоматизованого тесту;
+- коректність `Severity` та `Priority`;
+- наявність мітки `module`;
+- опис `Actual Result` та `Expected Result`;
+- посилання на відповідний тестовий файл;
+- повноту звіту за шаблоном дефекту;
+- простежуваність `BL → тест → Issue`.
+
+Усі 6 фінальних звітів про дефекти відповідають вимогам Sprint 4.
+
+**Фінальний результат review:** пройдено.
