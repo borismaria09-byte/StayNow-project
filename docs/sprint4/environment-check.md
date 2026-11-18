@@ -16,7 +16,6 @@
 | **Волошин Дмитро** | Windows 11, x64 | Maven 3.10.0 | Java 21 LTS | 7 tests, BUILD SUCCESS | Є |
 | **Михайленко Ростислав** | Windows 11, x64 | Maven 3.10.0 | Microsoft JDK 21.0.13 | 7 tests, BUILD SUCCESS | Є |
 
-*(Примітка: якщо у твоєму локальному виводі `mvn -v` зазначено іншу версію Maven чи Java, просто підправ свій рядок у таблиці).*
 
 ## Результат початкового запуску (`code/starter`)
 
