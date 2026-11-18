@@ -11,29 +11,38 @@
 ## 1. Загальні параметри запуску
 
 - **Середовище:** Windows 10/11, OpenJDK 17.0.12, Apache Maven 3.9.16
-- **Команди виконання:**
-  ```bash
-  mvn clean test
-  ```
 - **Конфігурація браузера для UI-тестів:** Google Chrome (Headless mode `--headless=new`), Selenium WebDriver 4.x
+- **Команди виконання:**
+  1. `mvn clean test` (запуск без групи `ui`)
+  2. `mvn test -DexcludedGroups=none` (повний запуск із групою `ui`)
 
 ---
 
 ## 2. Підсумкові показники збірки (Build Summary)
 
-**Вивід консолі Maven Surefire:**
+### Запуск 1: `mvn clean test` (тільки юніт-тести)
+**Вивід консолі:**
+```text
+Tests run: 46, Failures: 13, Errors: 0, Skipped: 0
+```
+| Метрика | Значення |
+|---|---|
+| **Усього виконано тестів** | **46** |
+| **Падіння (Failures)** | **13** |
+| **Помилки (Errors)** | **0** |
+| **Статус збірки** | **BUILD FAILURE** |
+
+### Запуск 2: `mvn test -DexcludedGroups=none` (Unit + UI тести)
+**Вивід консолі:**
 ```text
 Tests run: 54, Failures: 13, Errors: 0, Skipped: 0
 ```
-
 | Метрика | Значення |
 |---|---|
-| **Усього виконано тестів (Tests run)** | **54** |
+| **Усього виконано тестів** | **54** |
 | **Падіння (Failures)** | **13** |
-| **Помилки коду / середовища (Errors)** | **0** |
-| **Пропущені тести (Skipped)** | **0** |
-| **Загальний час виконання (Total Time)** | **8.591 s** |
-| **Статус збірки (Build Status)** | **BUILD FAILURE** |
+| **Помилки (Errors)** | **0** |
+| **Статус збірки** | **BUILD FAILURE** |
 
 ---
 
