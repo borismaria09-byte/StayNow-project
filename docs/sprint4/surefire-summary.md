@@ -48,13 +48,13 @@ Tests run: 54, Failures: 13, Errors: 0, Skipped: 0
 
 ## 3. Деталізація за тестовими класами
 
-### 3.1. `ua.kpi.tzyapz.staynow.ProtsenkoTest` та `ProtsenkoUiTest`
+### 3.1. `ua.kpi.tzyapz.staynow.ProtsenkoTest` та `ua.kpi.tzyapz.staynow.ui.ProtsenkoUiTest`
 - **Failures:** 0, **Errors:** 0
 - **Результат:** `PASSED` (Усі тести виконані успішно без відхилень).
 
 ### 3.2. Інші класи (`BorysTest`, `MironenkoTest`, `MykhailenkoTest`, `VoloshynTest`)
 - **Failures:** 13 (сумарно)
-- **Результат:** `FAILED` (Присутні помилки валідації дат, розрахунку націнки вихідного дня, округлення, знижок та скасування бронювання; зафіксовано 7 дефектів із міткою `module`).
+- **Результат:** `FAILED` (Присутні помилки валідації дат, розрахунку націнки вихідного дня, округлення, знижок та скасування бронювання; зафіксовано 6 дефектів із міткою `module`).
 
 ---
 
@@ -63,12 +63,11 @@ Tests run: 54, Failures: 13, Errors: 0, Skipped: 0
 | ID дефекту | Вимога | Тести, що впали (`FAILED`) | Опис проблеми | Severity |
 |---|---|---|---|---|
 | **#12** | BL-10 | `MykhailenkoTest.checkInBeforeTodayIsRejected` | Система приймає дату заїзду в минулому | Major |
-| **#13** | BL-50 | `MykhailenkoTest.nightPriceIsRoundedHalfUp` | Некоректне округлення вартості бронювання (`43.32` замість `43.33`) | Minor |
+| **#13** | BL-50 | `MykhailenkoTest.nightPriceIsRoundedHalfUp` | Некоректне округлення вартості бронювання (`43.32` замість `43.33`) | Major |
 | **#19** | BL-10 | `BorysTest.thirtyNightsAreAllowed` | Система відхиляє валідне бронювання тривалістю рівно 30 ночей | Major |
-| **#20** | BL-70 | `BorysTest.checkInOnPreviousCheckOutDateIsAvailable`, `VoloshynTest.ut12_bookingDateOverlap` | Помилка перевірки перетину дат та заїзду в день виїзду попереднього гостя | Major |
-| **#21** | BL-40 | `BorysTest.fridayNightHasWeekendSurcharge`, `MironenkoTest.isWeekendNight_Test` | Невірне визначення вихідних ночей та відсутність націнки вихідного дня | Major |
-| **#22** | BL-50 | `VoloshynTest.ut10_longStayDiscount` | Некоректний розрахунок знижки 10% за тривале проживання (`615.00` замість `630.00`) | Major |
-| **#23** | BL-60 | `BorysTest.cancellationExactlySevenDaysBeforeIsFree`, `MironenkoTest.cancellationFee_7Days_IsFree`, `VoloshynTest.ut11_cancellationFee` | Нараховується штраф `500.00` замість `0.00` при скасуванні рівно за 7 днів | Major |
+| **#25** | BL-70 | `BorysTest.checkInOnPreviousCheckOutDateIsAvailable`, `VoloshynTest.ut12_bookingDateOverlap` | Помилка перевірки перетину дат та заїзду в день виїзду попереднього гостя | Major |
+| **#26** | BL-40 | `BorysTest.fridayNightHasWeekendSurcharge`, `MironenkoTest.isWeekendNight_Test` | Невірне визначення вихідних ночей та відсутність націнки вихідного дня | Major |
+| **#28** | BL-50 / BL-60 | `VoloshynTest.ut10_longStayDiscount`, `BorysTest.cancellationExactlySevenDaysBeforeIsFree`, `MironenkoTest.cancellationFee_7Days_IsFree`, `VoloshynTest.ut11_cancellationFee` | Некоректний розрахунок знижки або штрафів | Major |
 
 ---
 
@@ -77,5 +76,5 @@ Tests run: 54, Failures: 13, Errors: 0, Skipped: 0
 1. Команда успішно інтегрувала всі тести в єдиний репозиторій. Загальна кількість виконаних тестів: 54.
 2. Локальні тести розробника `ProtsenkoTest` та `ProtsenkoUiTest` проходять успішно (`Errors: 0`).
 3. Виявлено 13 падінь (`Failures`) у тестах інших учасників через розбіжності між очікуваною бізнес-логікою та фактичною реалізацією модуля v1.
-4. Усі 7 виявлених дефектів занесені в трекер GitHub Issues (`#12`, `#13`, `#19`–`#23`) з міткою `module` для подальшого виправлення.
+4. Усі 6 виявлених дефектів занесені в трекер GitHub Issues (`#12`, `#13`, `#19`, `#25`, `#26`, `#28`) з міткою `module` для подальшого виправлення.
 5. Протокол запуску та прив'язку до дефектів задокументовано у повному обсязі.
