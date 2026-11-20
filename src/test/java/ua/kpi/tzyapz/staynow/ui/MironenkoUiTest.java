@@ -405,59 +405,53 @@ class MironenkoUiTest {
                 checkAvailability
         );
 
-        wait.until(driver -> {
+        // React може перемалювати картки між пошуком елемента та його читанням.
+        // ExpectedConditions.refreshed повторно перевіряє умову у разі stale.
+        wait.until(
+                ExpectedConditions.refreshed(driver -> {
+                    List<WebElement> links =
+                            driver.findElements(
+                                    By.cssSelector(
+                                            ".room-card a[href*='/reservation/']"
+                                    )
+                            );
 
-            List<WebElement> links =
-                    driver.findElements(
-                            By.cssSelector(
-                                    ".room-card a[href*='/reservation/']"
-                            )
-                    );
+                    if (links.isEmpty()) {
+                        return false;
+                    }
 
-            return links.stream()
-                    .filter(
-                            WebElement::isDisplayed
-                    )
-                    .noneMatch(link -> {
+                    return links.stream()
+                            .filter(WebElement::isDisplayed)
+                            .noneMatch(link -> {
+                                String href = link.getAttribute("href");
+                                return href != null
+                                        && href.contains(
+                                                "/reservation/" + bookedRoomId
+                                        );
+                            });
+                })
+        );
 
-                        String href =
-                                link.getAttribute(
-                                        "href"
+        // Читаємо актуальний DOM за один JS-виклик без застарілих WebElement.
+        boolean bookedRoomStillVisible =
+                Boolean.TRUE.equals(
+                        js.executeScript(
+                                """
+                                const roomId = arguments[0];
+                                return Array.from(
+                                    document.querySelectorAll(
+                                        ".room-card a[href*='/reservation/']"
+                                    )
+                                ).some(link =>
+                                    link.getClientRects().length > 0 &&
+                                    (link.getAttribute("href") || "").includes(
+                                        "/reservation/" + roomId
+                                    )
                                 );
-
-                        return href != null
-                                && href.contains(
-                                        "/reservation/"
-                                                + bookedRoomId
-                                );
-                    });
-        });
-
-        List<WebElement> availableRooms =
-                driver.findElements(
-                        By.cssSelector(
-                                ".room-card a[href*='/reservation/']"
+                                """,
+                                bookedRoomId
                         )
                 );
-
-        boolean bookedRoomStillVisible =
-                availableRooms.stream()
-                        .filter(
-                                WebElement::isDisplayed
-                        )
-                        .anyMatch(link -> {
-
-                            String href =
-                                    link.getAttribute(
-                                            "href"
-                                    );
-
-                            return href != null
-                                    && href.contains(
-                                            "/reservation/"
-                                                    + bookedRoomId
-                                    );
-                        });
 
         assertFalse(
                 bookedRoomStillVisible,
