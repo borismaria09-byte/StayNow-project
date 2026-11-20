@@ -45,6 +45,7 @@ class BorysTest {
         );
     }
 
+    // Дефект модуля: не застосовується надбавка 15% для п'ятниці. Issue: #28
     @Test
     @DisplayName("UT-14 | BL-30: ніч з п'ятниці на суботу має надбавку 15 %")
     void fridayNightHasWeekendSurcharge() {
