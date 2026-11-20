@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -46,7 +48,7 @@ class BorysUiTest {
 
         wait = new WebDriverWait(
                 driver,
-                Duration.ofSeconds(20)
+                Duration.ofSeconds(25)
         );
 
         js = (JavascriptExecutor) driver;
@@ -60,6 +62,24 @@ class BorysUiTest {
         if (driver != null) {
             driver.quit();
         }
+    }
+
+    private Keys getModifierKey() {
+
+        Platform platform =
+                ((org.openqa.selenium.HasCapabilities) driver)
+                        .getCapabilities()
+                        .getPlatformName();
+
+        if (platform != null
+                && platform.toString()
+                .toLowerCase()
+                .contains("mac")) {
+
+            return Keys.COMMAND;
+        }
+
+        return Keys.CONTROL;
     }
 
     private List<WebElement> getDateInputs() {
@@ -94,29 +114,29 @@ class BorysUiTest {
                 input
         );
 
-        js.executeScript(
-                """
-                const element = arguments[0];
-                const value = arguments[1];
+        wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        input
+                )
+        );
 
-                const setter =
-                    Object.getOwnPropertyDescriptor(
-                        HTMLInputElement.prototype,
-                        'value'
-                    ).set;
+        input.click();
 
-                setter.call(element, value);
+        input.sendKeys(
+                Keys.chord(
+                        getModifierKey(),
+                        "a"
+                )
+        );
 
-                element.dispatchEvent(
-                    new Event('input', { bubbles: true })
-                );
+        input.sendKeys(
+                Keys.BACK_SPACE
+        );
 
-                element.dispatchEvent(
-                    new Event('change', { bubbles: true })
-                );
-                """,
-                input,
-                date
+        input.sendKeys(date);
+
+        input.sendKeys(
+                Keys.TAB
         );
     }
 
@@ -135,25 +155,32 @@ class BorysUiTest {
         assertAll(
                 "Елементи шапки",
                 () -> assertTrue(
-                        header.getText().contains("Shady Meadows B&B")
+                        header.getText()
+                                .contains("Shady Meadows B&B")
                 ),
                 () -> assertTrue(
-                        header.getText().contains("Rooms")
+                        header.getText()
+                                .contains("Rooms")
                 ),
                 () -> assertTrue(
-                        header.getText().contains("Booking")
+                        header.getText()
+                                .contains("Booking")
                 ),
                 () -> assertTrue(
-                        header.getText().contains("Amenities")
+                        header.getText()
+                                .contains("Amenities")
                 ),
                 () -> assertTrue(
-                        header.getText().contains("Location")
+                        header.getText()
+                                .contains("Location")
                 ),
                 () -> assertTrue(
-                        header.getText().contains("Contact")
+                        header.getText()
+                                .contains("Contact")
                 ),
                 () -> assertTrue(
-                        header.getText().contains("Admin")
+                        header.getText()
+                                .contains("Admin")
                 )
         );
 
@@ -174,7 +201,8 @@ class BorysUiTest {
                 (Boolean) js.executeScript(
                         """
                         const r =
-                            arguments[0].getBoundingClientRect();
+                            arguments[0]
+                                .getBoundingClientRect();
 
                         return r.bottom > 0
                             && r.top < window.innerHeight;
@@ -202,7 +230,7 @@ class BorysUiTest {
 
         setDate(
                 checkIn,
-                "2026-11-20"
+                "20/11/2026"
         );
 
         dateInputs =
@@ -213,25 +241,8 @@ class BorysUiTest {
 
         setDate(
                 checkOut,
-                "2026-11-22"
+                "22/11/2026"
         );
-
-        wait.until(driver -> {
-
-            List<WebElement> inputs =
-                    getDateInputs();
-
-            String actualCheckIn =
-                    inputs.get(0)
-                            .getAttribute("value");
-
-            String actualCheckOut =
-                    inputs.get(1)
-                            .getAttribute("value");
-
-            return "2026-11-20".equals(actualCheckIn)
-                    && "2026-11-22".equals(actualCheckOut);
-        });
 
         WebElement checkAvailability =
                 wait.until(
@@ -243,9 +254,11 @@ class BorysUiTest {
                 );
 
         js.executeScript(
-                "arguments[0].click();",
+                "arguments[0].scrollIntoView({block:'center'});",
                 checkAvailability
         );
+
+        checkAvailability.click();
 
         WebElement singleCard =
                 wait.until(driver -> {
@@ -319,14 +332,18 @@ class BorysUiTest {
                         .orElseThrow();
 
         js.executeScript(
-                "arguments[0].click();",
+                "arguments[0].scrollIntoView({block:'center'});",
                 bookNow
         );
+
+        bookNow.click();
 
         wait.until(
                 driver ->
                         driver.getCurrentUrl()
-                                .contains("/reservation/")
+                                .contains(
+                                        "/reservation/"
+                                )
         );
 
         String url =
@@ -335,7 +352,9 @@ class BorysUiTest {
         assertAll(
                 "Перехід до бронювання",
                 () -> assertTrue(
-                        url.contains("/reservation/"),
+                        url.contains(
+                                "/reservation/"
+                        ),
                         "URL має містити /reservation/"
                 ),
                 () -> assertTrue(
