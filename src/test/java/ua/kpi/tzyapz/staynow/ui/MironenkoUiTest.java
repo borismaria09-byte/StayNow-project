@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -17,8 +16,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,7 +35,8 @@ class MironenkoUiTest {
     @BeforeEach
     void setUp() {
 
-        ChromeOptions options = new ChromeOptions();
+        ChromeOptions options =
+                new ChromeOptions();
 
         options.addArguments(
                 "--headless=new",
@@ -46,14 +44,23 @@ class MironenkoUiTest {
                 "--remote-allow-origins=*"
         );
 
-        driver = new ChromeDriver(options);
+        driver =
+                new ChromeDriver(options);
 
-        wait = new WebDriverWait(
-                driver,
-                Duration.ofSeconds(25)
-        );
+        driver.manage()
+                .timeouts()
+                .scriptTimeout(
+                        Duration.ofSeconds(60)
+                );
 
-        js = (JavascriptExecutor) driver;
+        wait =
+                new WebDriverWait(
+                        driver,
+                        Duration.ofSeconds(30)
+                );
+
+        js =
+                (JavascriptExecutor) driver;
 
         driver.get(BASE_URL);
     }
@@ -99,155 +106,176 @@ class MironenkoUiTest {
         );
 
         js.executeScript(
-                "arguments[0].click();",
-                input
-        );
+                """
+                const element = arguments[0];
+                const value = arguments[1];
 
-        input.sendKeys(
-                Keys.chord(
-                        Keys.COMMAND,
-                        "a"
-                )
-        );
+                const setter =
+                    Object.getOwnPropertyDescriptor(
+                        HTMLInputElement.prototype,
+                        'value'
+                    ).set;
 
-        input.sendKeys(date);
-        input.sendKeys(Keys.TAB);
+                setter.call(element, value);
+
+                element.dispatchEvent(
+                    new Event('input', { bubbles: true })
+                );
+
+                element.dispatchEvent(
+                    new Event('change', { bubbles: true })
+                );
+                """,
+                input,
+                date
+        );
     }
 
-    /*
-     * Створюємо передумову для TC-003.
-     *
-     * Через особливість тестового сайту кімната,
-     * отримана через /api/room, іноді все одно
-     * повертає 409 при POST /api/booking.
-     *
-     * Тому перебираємо кілька кімнат і дат,
-     * доки бронювання реально не буде створено.
-     */
     private String createAvailableBooking() {
 
-        Object result = js.executeAsyncScript(
-                """
-                const done = arguments[arguments.length - 1];
+        Object result =
+                js.executeAsyncScript(
+                        """
+                        const done =
+                            arguments[
+                                arguments.length - 1
+                            ];
 
-                (async () => {
+                        (async () => {
 
-                    function formatDate(date) {
-                        return date.toISOString().split('T')[0];
-                    }
+                            function formatDate(date) {
+                                return date
+                                    .toISOString()
+                                    .split('T')[0];
+                            }
 
-                    const start = new Date();
+                            const start =
+                                new Date();
 
-                    /*
-                     * Перевіряємо до 12 різних
-                     * майбутніх інтервалів.
-                     */
-                    for (let attempt = 0; attempt < 12; attempt++) {
+                            for (
+                                let attempt = 0;
+                                attempt < 12;
+                                attempt++
+                            ) {
 
-                        const checkIn = new Date(start);
+                                const checkIn =
+                                    new Date(start);
 
-                        checkIn.setUTCDate(
-                            checkIn.getUTCDate()
-                            + 120
-                            + attempt * 10
-                        );
-
-                        const checkOut = new Date(checkIn);
-
-                        checkOut.setUTCDate(
-                            checkOut.getUTCDate() + 2
-                        );
-
-                        const checkInText =
-                            formatDate(checkIn);
-
-                        const checkOutText =
-                            formatDate(checkOut);
-
-                        try {
-
-                            const roomResponse =
-                                await fetch(
-                                    '/api/room?checkin='
-                                    + checkInText
-                                    + '&checkout='
-                                    + checkOutText
+                                checkIn.setUTCDate(
+                                    checkIn.getUTCDate()
+                                    + 120
+                                    + attempt * 10
                                 );
 
-                            const roomData =
-                                await roomResponse.json();
+                                const checkOut =
+                                    new Date(checkIn);
 
-                            const rooms =
-                                roomData.rooms || [];
+                                checkOut.setUTCDate(
+                                    checkOut.getUTCDate()
+                                    + 2
+                                );
 
-                            /*
-                             * Перевіряємо всі кімнати,
-                             * які endpoint назвав доступними.
-                             */
-                            for (const room of rooms) {
+                                const checkInText =
+                                    formatDate(checkIn);
 
-                                const booking = {
-                                    roomid: room.roomid,
-                                    firstname: 'T3-Test',
-                                    lastname: 'T3-Testenko',
-                                    depositpaid: false,
+                                const checkOutText =
+                                    formatDate(checkOut);
 
-                                    bookingdates: {
-                                        checkin: checkInText,
-                                        checkout: checkOutText
-                                    },
+                                try {
 
-                                    email: 't3@example.com',
-                                    phone: '+380001234567'
-                                };
+                                    const roomResponse =
+                                        await fetch(
+                                            '/api/room?checkin='
+                                            + checkInText
+                                            + '&checkout='
+                                            + checkOutText
+                                        );
 
-                                const response =
-                                    await fetch(
-                                        '/api/booking',
-                                        {
-                                            method: 'POST',
+                                    const roomData =
+                                        await roomResponse.json();
 
-                                            headers: {
-                                                'Content-Type':
-                                                    'application/json'
+                                    const rooms =
+                                        roomData.rooms || [];
+
+                                    for (
+                                        const room
+                                        of rooms
+                                    ) {
+
+                                        const booking = {
+                                            roomid:
+                                                room.roomid,
+
+                                            firstname:
+                                                'T3-Test',
+
+                                            lastname:
+                                                'T3-Testenko',
+
+                                            depositpaid:
+                                                false,
+
+                                            bookingdates: {
+                                                checkin:
+                                                    checkInText,
+
+                                                checkout:
+                                                    checkOutText
                                             },
 
-                                            body:
-                                                JSON.stringify(
-                                                    booking
-                                                )
+                                            email:
+                                                't3@example.com',
+
+                                            phone:
+                                                '+380001234567'
+                                        };
+
+                                        const response =
+                                            await fetch(
+                                                '/api/booking',
+                                                {
+                                                    method:
+                                                        'POST',
+
+                                                    headers: {
+                                                        'Content-Type':
+                                                            'application/json'
+                                                    },
+
+                                                    body:
+                                                        JSON.stringify(
+                                                            booking
+                                                        )
+                                                }
+                                            );
+
+                                        if (
+                                            response.status
+                                            === 201
+                                        ) {
+
+                                            done(
+                                                'OK|'
+                                                + room.roomid
+                                                + '|'
+                                                + checkInText
+                                                + '|'
+                                                + checkOutText
+                                            );
+
+                                            return;
                                         }
-                                    );
+                                    }
 
-                                /*
-                                 * 201 = бронювання
-                                 * реально створене.
-                                 */
-                                if (response.status === 201) {
-
-                                    done(
-                                        'OK|'
-                                        + room.roomid
-                                        + '|'
-                                        + checkInText
-                                        + '|'
-                                        + checkOutText
-                                    );
-
-                                    return;
+                                } catch (error) {
                                 }
                             }
 
-                        } catch (error) {
-                            // пробуємо наступний інтервал
-                        }
-                    }
+                            done('NO_BOOKING');
 
-                    done('NO_BOOKING');
-
-                })();
-                """
-        );
+                        })();
+                        """
+                );
 
         return String.valueOf(result);
     }
@@ -258,9 +286,6 @@ class MironenkoUiTest {
     )
     void bookedRoomIsFilteredFromAvailableRooms() {
 
-        /*
-         * 1. Створюємо реальне бронювання.
-         */
         String bookingResult =
                 createAvailableBooking();
 
@@ -271,46 +296,20 @@ class MironenkoUiTest {
                         + bookingResult
         );
 
-        /*
-         * Формат:
-         *
-         * OK|roomId|checkIn|checkOut
-         */
         String[] parts =
                 bookingResult.split("\\|");
 
         final String bookedRoomId =
                 parts[1];
 
-        LocalDate checkIn =
-                LocalDate.parse(
-                        parts[2]
-                );
+        final String checkIn =
+                parts[2];
 
-        LocalDate checkOut =
-                LocalDate.parse(
-                        parts[3]
-                );
+        final String checkOut =
+                parts[3];
 
-        DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
-                );
-
-        String checkInUi =
-                checkIn.format(formatter);
-
-        String checkOutUi =
-                checkOut.format(formatter);
-
-        /*
-         * 2. Відкриваємо головну сторінку.
-         */
         driver.get(BASE_URL);
 
-        /*
-         * 3. Знаходимо поля Check In / Check Out.
-         */
         List<WebElement> inputs =
                 getDateInputs();
 
@@ -319,12 +318,9 @@ class MironenkoUiTest {
 
         setDate(
                 checkInInput,
-                checkInUi
+                checkIn
         );
 
-        /*
-         * React може перемалювати DOM.
-         */
         inputs =
                 getDateInputs();
 
@@ -333,15 +329,29 @@ class MironenkoUiTest {
 
         setDate(
                 checkOutInput,
-                checkOutUi
+                checkOut
         );
 
-        /*
-         * 4. Натискаємо Check Availability.
-         */
+        wait.until(driver -> {
+
+            List<WebElement> currentInputs =
+                    getDateInputs();
+
+            String actualCheckIn =
+                    currentInputs.get(0)
+                            .getAttribute("value");
+
+            String actualCheckOut =
+                    currentInputs.get(1)
+                            .getAttribute("value");
+
+            return checkIn.equals(actualCheckIn)
+                    && checkOut.equals(actualCheckOut);
+        });
+
         WebElement checkAvailability =
                 wait.until(
-                        ExpectedConditions.presenceOfElementLocated(
+                        ExpectedConditions.elementToBeClickable(
                                 By.xpath(
                                         "//button[normalize-space()='Check Availability']"
                                 )
@@ -349,19 +359,10 @@ class MironenkoUiTest {
                 );
 
         js.executeScript(
-                "arguments[0].scrollIntoView({block:'center'});",
-                checkAvailability
-        );
-
-        js.executeScript(
                 "arguments[0].click();",
                 checkAvailability
         );
 
-        /*
-         * 5. Чекаємо, доки заброньований номер
-         * зникне зі списку доступних.
-         */
         wait.until(driver -> {
 
             List<WebElement> links =
@@ -380,15 +381,12 @@ class MironenkoUiTest {
 
                         return href != null
                                 && href.contains(
-                                "/reservation/"
-                                        + bookedRoomId
-                        );
+                                        "/reservation/"
+                                                + bookedRoomId
+                                );
                     });
         });
 
-        /*
-         * 6. Фінальна перевірка TC-003 / F-30.
-         */
         List<WebElement> availableRooms =
                 driver.findElements(
                         By.cssSelector(
@@ -406,9 +404,9 @@ class MironenkoUiTest {
 
                             return href != null
                                     && href.contains(
-                                    "/reservation/"
-                                            + bookedRoomId
-                            );
+                                            "/reservation/"
+                                                    + bookedRoomId
+                                    );
                         });
 
         assertFalse(
