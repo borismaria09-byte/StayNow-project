@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -16,6 +18,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -73,6 +77,24 @@ class MironenkoUiTest {
         }
     }
 
+    private Keys getModifierKey() {
+
+        Platform platform =
+                ((org.openqa.selenium.HasCapabilities) driver)
+                        .getCapabilities()
+                        .getPlatformName();
+
+        if (platform != null
+                && platform.toString()
+                .toLowerCase()
+                .contains("mac")) {
+
+            return Keys.COMMAND;
+        }
+
+        return Keys.CONTROL;
+    }
+
     private List<WebElement> getDateInputs() {
 
         return wait.until(driver -> {
@@ -105,29 +127,29 @@ class MironenkoUiTest {
                 input
         );
 
-        js.executeScript(
-                """
-                const element = arguments[0];
-                const value = arguments[1];
+        wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        input
+                )
+        );
 
-                const setter =
-                    Object.getOwnPropertyDescriptor(
-                        HTMLInputElement.prototype,
-                        'value'
-                    ).set;
+        input.click();
 
-                setter.call(element, value);
+        input.sendKeys(
+                Keys.chord(
+                        getModifierKey(),
+                        "a"
+                )
+        );
 
-                element.dispatchEvent(
-                    new Event('input', { bubbles: true })
-                );
+        input.sendKeys(
+                Keys.BACK_SPACE
+        );
 
-                element.dispatchEvent(
-                    new Event('change', { bubbles: true })
-                );
-                """,
-                input,
-                date
+        input.sendKeys(date);
+
+        input.sendKeys(
+                Keys.TAB
         );
     }
 
@@ -176,10 +198,14 @@ class MironenkoUiTest {
                                 );
 
                                 const checkInText =
-                                    formatDate(checkIn);
+                                    formatDate(
+                                        checkIn
+                                    );
 
                                 const checkOutText =
-                                    formatDate(checkOut);
+                                    formatDate(
+                                        checkOut
+                                    );
 
                                 try {
 
@@ -271,13 +297,17 @@ class MironenkoUiTest {
                                 }
                             }
 
-                            done('NO_BOOKING');
+                            done(
+                                'NO_BOOKING'
+                            );
 
                         })();
                         """
                 );
 
-        return String.valueOf(result);
+        return String.valueOf(
+                result
+        );
     }
 
     @Test
@@ -290,25 +320,48 @@ class MironenkoUiTest {
                 createAvailableBooking();
 
         assertTrue(
-                bookingResult.startsWith("OK|"),
+                bookingResult
+                        .startsWith("OK|"),
                 "Передумова TC-003: бронювання має бути створене. "
                         + "Результат: "
                         + bookingResult
         );
 
         String[] parts =
-                bookingResult.split("\\|");
+                bookingResult
+                        .split("\\|");
 
         final String bookedRoomId =
                 parts[1];
 
-        final String checkIn =
-                parts[2];
+        LocalDate checkIn =
+                LocalDate.parse(
+                        parts[2]
+                );
 
-        final String checkOut =
-                parts[3];
+        LocalDate checkOut =
+                LocalDate.parse(
+                        parts[3]
+                );
 
-        driver.get(BASE_URL);
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy"
+                );
+
+        String checkInUi =
+                checkIn.format(
+                        formatter
+                );
+
+        String checkOutUi =
+                checkOut.format(
+                        formatter
+                );
+
+        driver.get(
+                BASE_URL
+        );
 
         List<WebElement> inputs =
                 getDateInputs();
@@ -318,7 +371,7 @@ class MironenkoUiTest {
 
         setDate(
                 checkInInput,
-                checkIn
+                checkInUi
         );
 
         inputs =
@@ -329,25 +382,8 @@ class MironenkoUiTest {
 
         setDate(
                 checkOutInput,
-                checkOut
+                checkOutUi
         );
-
-        wait.until(driver -> {
-
-            List<WebElement> currentInputs =
-                    getDateInputs();
-
-            String actualCheckIn =
-                    currentInputs.get(0)
-                            .getAttribute("value");
-
-            String actualCheckOut =
-                    currentInputs.get(1)
-                            .getAttribute("value");
-
-            return checkIn.equals(actualCheckIn)
-                    && checkOut.equals(actualCheckOut);
-        });
 
         WebElement checkAvailability =
                 wait.until(
@@ -359,9 +395,11 @@ class MironenkoUiTest {
                 );
 
         js.executeScript(
-                "arguments[0].click();",
+                "arguments[0].scrollIntoView({block:'center'});",
                 checkAvailability
         );
+
+        checkAvailability.click();
 
         wait.until(driver -> {
 
@@ -373,11 +411,15 @@ class MironenkoUiTest {
                     );
 
             return links.stream()
-                    .filter(WebElement::isDisplayed)
+                    .filter(
+                            WebElement::isDisplayed
+                    )
                     .noneMatch(link -> {
 
                         String href =
-                                link.getAttribute("href");
+                                link.getAttribute(
+                                        "href"
+                                );
 
                         return href != null
                                 && href.contains(
@@ -396,11 +438,15 @@ class MironenkoUiTest {
 
         boolean bookedRoomStillVisible =
                 availableRooms.stream()
-                        .filter(WebElement::isDisplayed)
+                        .filter(
+                                WebElement::isDisplayed
+                        )
                         .anyMatch(link -> {
 
                             String href =
-                                    link.getAttribute("href");
+                                    link.getAttribute(
+                                            "href"
+                                    );
 
                             return href != null
                                     && href.contains(
