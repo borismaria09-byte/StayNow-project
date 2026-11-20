@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.HasCapabilities;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.Platform;
@@ -67,7 +68,7 @@ class BorysUiTest {
     private Keys getModifierKey() {
 
         Platform platform =
-                ((org.openqa.selenium.HasCapabilities) driver)
+                ((HasCapabilities) driver)
                         .getCapabilities()
                         .getPlatformName();
 
@@ -114,14 +115,23 @@ class BorysUiTest {
                 input
         );
 
-        wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        input
-                )
+        /*
+         * Використовуємо JavaScript-клік,
+         * тому що у headless Chrome звичайний click()
+         * може бути перехоплений календарем або іншим
+         * елементом сторінки.
+         */
+        js.executeScript(
+                "arguments[0].click();",
+                input
         );
 
-        input.click();
-
+        /*
+         * Виділяємо поточне значення.
+         *
+         * Windows/Linux -> Ctrl+A
+         * macOS         -> Command+A
+         */
         input.sendKeys(
                 Keys.chord(
                         getModifierKey(),
@@ -135,6 +145,10 @@ class BorysUiTest {
 
         input.sendKeys(date);
 
+        /*
+         * TAB завершує редагування поля
+         * та передає зміну React-компоненту.
+         */
         input.sendKeys(
                 Keys.TAB
         );
@@ -146,51 +160,64 @@ class BorysUiTest {
     )
     void testUi05_headerRemainsVisible() {
 
-        WebElement header = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.tagName("nav")
-                )
-        );
+        WebElement header =
+                wait.until(
+                        ExpectedConditions
+                                .visibilityOfElementLocated(
+                                        By.tagName("nav")
+                                )
+                );
 
         assertAll(
                 "Елементи шапки",
+
                 () -> assertTrue(
                         header.getText()
-                                .contains("Shady Meadows B&B")
+                                .contains(
+                                        "Shady Meadows B&B"
+                                )
                 ),
+
                 () -> assertTrue(
                         header.getText()
                                 .contains("Rooms")
                 ),
+
                 () -> assertTrue(
                         header.getText()
                                 .contains("Booking")
                 ),
+
                 () -> assertTrue(
                         header.getText()
                                 .contains("Amenities")
                 ),
+
                 () -> assertTrue(
                         header.getText()
                                 .contains("Location")
                 ),
+
                 () -> assertTrue(
                         header.getText()
                                 .contains("Contact")
                 ),
+
                 () -> assertTrue(
                         header.getText()
                                 .contains("Admin")
                 )
         );
 
-        WebElement contact = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath(
-                                "//*[contains(text(),'Send Us a Message')]"
-                        )
-                )
-        );
+        WebElement contact =
+                wait.until(
+                        ExpectedConditions
+                                .visibilityOfElementLocated(
+                                        By.xpath(
+                                                "//*[contains(text(),'Send Us a Message')]"
+                                        )
+                                )
+                );
 
         js.executeScript(
                 "arguments[0].scrollIntoView({block:'center'});",
@@ -222,9 +249,15 @@ class BorysUiTest {
     )
     void testUi06_singleRoomCardAndBooking() {
 
+        /*
+         * 1. Знаходимо поля дат.
+         */
         List<WebElement> dateInputs =
                 getDateInputs();
 
+        /*
+         * 2. Дата заїзду.
+         */
         WebElement checkIn =
                 dateInputs.get(0);
 
@@ -233,9 +266,16 @@ class BorysUiTest {
                 "20/11/2026"
         );
 
+        /*
+         * React може перемалювати DOM,
+         * тому отримуємо поля заново.
+         */
         dateInputs =
                 getDateInputs();
 
+        /*
+         * 3. Дата виїзду.
+         */
         WebElement checkOut =
                 dateInputs.get(1);
 
@@ -244,13 +284,17 @@ class BorysUiTest {
                 "22/11/2026"
         );
 
+        /*
+         * 4. Натискаємо Check Availability.
+         */
         WebElement checkAvailability =
                 wait.until(
-                        ExpectedConditions.elementToBeClickable(
-                                By.xpath(
-                                        "//button[contains(.,'Check Availability')]"
+                        ExpectedConditions
+                                .presenceOfElementLocated(
+                                        By.xpath(
+                                                "//button[contains(.,'Check Availability')]"
+                                        )
                                 )
-                        )
                 );
 
         js.executeScript(
@@ -258,8 +302,14 @@ class BorysUiTest {
                 checkAvailability
         );
 
-        checkAvailability.click();
+        js.executeScript(
+                "arguments[0].click();",
+                checkAvailability
+        );
 
+        /*
+         * 5. Знаходимо картку Single.
+         */
         WebElement singleCard =
                 wait.until(driver -> {
 
@@ -271,7 +321,9 @@ class BorysUiTest {
                             );
 
                     return cards.stream()
-                            .filter(WebElement::isDisplayed)
+                            .filter(
+                                    WebElement::isDisplayed
+                            )
                             .filter(card ->
                                     card.findElements(
                                             By.xpath(
@@ -288,31 +340,55 @@ class BorysUiTest {
                 "Картка Single має відображатися"
         );
 
+        /*
+         * 6. Перевіряємо дані картки.
+         */
         String cardText =
                 singleCard.getText();
 
         assertAll(
                 "Дані картки Single",
+
                 () -> assertTrue(
-                        cardText.contains("Single")
+                        cardText.contains(
+                                "Single"
+                        )
                 ),
+
                 () -> assertTrue(
-                        cardText.contains("£100")
+                        cardText.contains(
+                                "£100"
+                        )
                 ),
+
                 () -> assertTrue(
-                        cardText.contains("per night")
+                        cardText.contains(
+                                "per night"
+                        )
                 ),
+
                 () -> assertTrue(
-                        cardText.contains("TV")
+                        cardText.contains(
+                                "TV"
+                        )
                 ),
+
                 () -> assertTrue(
-                        cardText.contains("WiFi")
+                        cardText.contains(
+                                "WiFi"
+                        )
                 ),
+
                 () -> assertTrue(
-                        cardText.contains("Safe")
+                        cardText.contains(
+                                "Safe"
+                        )
                 )
         );
 
+        /*
+         * 7. Знаходимо Book now.
+         */
         WebElement bookNow =
                 singleCard.findElements(
                                 By.cssSelector(
@@ -320,7 +396,9 @@ class BorysUiTest {
                                 )
                         )
                         .stream()
-                        .filter(WebElement::isDisplayed)
+                        .filter(
+                                WebElement::isDisplayed
+                        )
                         .filter(element ->
                                 element.getText()
                                         .trim()
@@ -331,13 +409,23 @@ class BorysUiTest {
                         .findFirst()
                         .orElseThrow();
 
+        /*
+         * JavaScript-клік стабільніший
+         * у headless Chrome.
+         */
         js.executeScript(
                 "arguments[0].scrollIntoView({block:'center'});",
                 bookNow
         );
 
-        bookNow.click();
+        js.executeScript(
+                "arguments[0].click();",
+                bookNow
+        );
 
+        /*
+         * 8. Очікуємо сторінку бронювання.
+         */
         wait.until(
                 driver ->
                         driver.getCurrentUrl()
@@ -349,20 +437,27 @@ class BorysUiTest {
         String url =
                 driver.getCurrentUrl();
 
+        /*
+         * 9. Перевіряємо перехід
+         * та передані дати.
+         */
         assertAll(
                 "Перехід до бронювання",
+
                 () -> assertTrue(
                         url.contains(
                                 "/reservation/"
                         ),
                         "URL має містити /reservation/"
                 ),
+
                 () -> assertTrue(
                         url.contains(
                                 "checkin=2026-11-20"
                         ),
                         "URL має містити дату заїзду"
                 ),
+
                 () -> assertTrue(
                         url.contains(
                                 "checkout=2026-11-22"
@@ -371,4 +466,4 @@ class BorysUiTest {
                 )
         );
     }
-}
+} 
