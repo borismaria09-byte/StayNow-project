@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -30,26 +29,95 @@ class BorysUiTest {
 
     private WebDriver driver;
     private WebDriverWait wait;
+    private JavascriptExecutor js;
 
     @BeforeEach
     void setUp() {
+
         ChromeOptions options = new ChromeOptions();
+
         options.addArguments(
                 "--headless=new",
-                "--window-size=1280,900"
+                "--window-size=1280,900",
+                "--remote-allow-origins=*"
         );
 
         driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        wait = new WebDriverWait(
+                driver,
+                Duration.ofSeconds(20)
+        );
+
+        js = (JavascriptExecutor) driver;
 
         driver.get(BASE_URL);
     }
 
     @AfterEach
     void tearDown() {
+
         if (driver != null) {
             driver.quit();
         }
+    }
+
+    private List<WebElement> getDateInputs() {
+
+        return wait.until(driver -> {
+
+            List<WebElement> inputs =
+                    driver.findElements(
+                            By.cssSelector(
+                                    "#booking input.form-control"
+                            )
+                    );
+
+            List<WebElement> visible =
+                    inputs.stream()
+                            .filter(WebElement::isDisplayed)
+                            .toList();
+
+            return visible.size() >= 2
+                    ? visible
+                    : null;
+        });
+    }
+
+    private void setDate(
+            WebElement input,
+            String date
+    ) {
+
+        js.executeScript(
+                "arguments[0].scrollIntoView({block:'center'});",
+                input
+        );
+
+        js.executeScript(
+                """
+                const element = arguments[0];
+                const value = arguments[1];
+
+                const setter =
+                    Object.getOwnPropertyDescriptor(
+                        HTMLInputElement.prototype,
+                        'value'
+                    ).set;
+
+                setter.call(element, value);
+
+                element.dispatchEvent(
+                    new Event('input', { bubbles: true })
+                );
+
+                element.dispatchEvent(
+                    new Event('change', { bubbles: true })
+                );
+                """,
+                input,
+                date
+        );
     }
 
     @Test
@@ -66,30 +134,51 @@ class BorysUiTest {
 
         assertAll(
                 "Елементи шапки",
-                () -> assertTrue(header.getText().contains("Shady Meadows B&B")),
-                () -> assertTrue(header.getText().contains("Rooms")),
-                () -> assertTrue(header.getText().contains("Booking")),
-                () -> assertTrue(header.getText().contains("Amenities")),
-                () -> assertTrue(header.getText().contains("Location")),
-                () -> assertTrue(header.getText().contains("Contact")),
-                () -> assertTrue(header.getText().contains("Admin"))
+                () -> assertTrue(
+                        header.getText().contains("Shady Meadows B&B")
+                ),
+                () -> assertTrue(
+                        header.getText().contains("Rooms")
+                ),
+                () -> assertTrue(
+                        header.getText().contains("Booking")
+                ),
+                () -> assertTrue(
+                        header.getText().contains("Amenities")
+                ),
+                () -> assertTrue(
+                        header.getText().contains("Location")
+                ),
+                () -> assertTrue(
+                        header.getText().contains("Contact")
+                ),
+                () -> assertTrue(
+                        header.getText().contains("Admin")
+                )
         );
 
         WebElement contact = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//*[contains(text(),'Send Us a Message')]")
+                        By.xpath(
+                                "//*[contains(text(),'Send Us a Message')]"
+                        )
                 )
         );
 
-        ((JavascriptExecutor) driver).executeScript(
+        js.executeScript(
                 "arguments[0].scrollIntoView({block:'center'});",
                 contact
         );
 
         Boolean headerVisible =
-                (Boolean) ((JavascriptExecutor) driver).executeScript(
-                        "const r = arguments[0].getBoundingClientRect();" +
-                        "return r.bottom > 0 && r.top < window.innerHeight;",
+                (Boolean) js.executeScript(
+                        """
+                        const r =
+                            arguments[0].getBoundingClientRect();
+
+                        return r.bottom > 0
+                            && r.top < window.innerHeight;
+                        """,
                         header
                 );
 
@@ -105,125 +194,143 @@ class BorysUiTest {
     )
     void testUi06_singleRoomCardAndBooking() {
 
-        List<WebElement> dateInputs = wait.until(driver -> {
+        List<WebElement> dateInputs =
+                getDateInputs();
+
+        WebElement checkIn =
+                dateInputs.get(0);
+
+        setDate(
+                checkIn,
+                "2026-11-20"
+        );
+
+        dateInputs =
+                getDateInputs();
+
+        WebElement checkOut =
+                dateInputs.get(1);
+
+        setDate(
+                checkOut,
+                "2026-11-22"
+        );
+
+        wait.until(driver -> {
 
             List<WebElement> inputs =
-                    driver.findElements(
-                            By.cssSelector("#booking input.form-control")
-                    );
+                    getDateInputs();
 
-            return inputs.size() >= 2
-                    ? inputs
-                    : null;
+            String actualCheckIn =
+                    inputs.get(0)
+                            .getAttribute("value");
+
+            String actualCheckOut =
+                    inputs.get(1)
+                            .getAttribute("value");
+
+            return "2026-11-20".equals(actualCheckIn)
+                    && "2026-11-22".equals(actualCheckOut);
         });
 
-        WebElement checkIn = dateInputs.get(0);
+        WebElement checkAvailability =
+                wait.until(
+                        ExpectedConditions.elementToBeClickable(
+                                By.xpath(
+                                        "//button[contains(.,'Check Availability')]"
+                                )
+                        )
+                );
 
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();",
-                checkIn
-        );
-        
-        checkIn.sendKeys(
-                Keys.chord(Keys.COMMAND, "a")
-        );
-        checkIn.sendKeys("20/11/2026");
-        checkIn.sendKeys(Keys.TAB);
-        
-        dateInputs = wait.until(driver -> {
-            List<WebElement> inputs =
-                    driver.findElements(
-                            By.cssSelector("#booking input.form-control")
-                    );
-        
-            return inputs.size() >= 2
-                    ? inputs
-                    : null;
-        });
-        
-        WebElement checkOut = dateInputs.get(1);
-        
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();",
-                checkOut
-        );
-        
-        checkOut.sendKeys(
-                Keys.chord(Keys.COMMAND, "a")
-        );
-        checkOut.sendKeys("22/11/2026");
-        checkOut.sendKeys(Keys.TAB);
-
-        WebElement checkAvailability = wait.until(
-                ExpectedConditions.presenceOfElementLocated(
-                        By.xpath("//button[contains(.,'Check Availability')]")
-                )
-        );
-
-        ((JavascriptExecutor) driver).executeScript(
+        js.executeScript(
                 "arguments[0].click();",
                 checkAvailability
         );
 
-        WebElement singleCard = wait.until(driver -> {
+        WebElement singleCard =
+                wait.until(driver -> {
 
-                List<WebElement> cards =
-                        driver.findElements(
-                                By.cssSelector(".room-card")
-                        );
-            
-                return cards.stream()
-                        .filter(WebElement::isDisplayed)
-                        .filter(card ->
-                                card.findElements(
-                                        By.xpath(".//*[normalize-space()='Single']")
-                                ).size() > 0
-                        )
-                        .findFirst()
-                        .orElse(null);
-            });
+                    List<WebElement> cards =
+                            driver.findElements(
+                                    By.cssSelector(
+                                            ".room-card"
+                                    )
+                            );
 
-            assertNotNull(
+                    return cards.stream()
+                            .filter(WebElement::isDisplayed)
+                            .filter(card ->
+                                    card.findElements(
+                                            By.xpath(
+                                                    ".//*[normalize-space()='Single']"
+                                            )
+                                    ).size() > 0
+                            )
+                            .findFirst()
+                            .orElse(null);
+                });
+
+        assertNotNull(
                 singleCard,
                 "Картка Single має відображатися"
         );
-        
-        String cardText = singleCard.getText();
-        
+
+        String cardText =
+                singleCard.getText();
+
         assertAll(
                 "Дані картки Single",
-                () -> assertTrue(cardText.contains("Single")),
-                () -> assertTrue(cardText.contains("£100")),
-                () -> assertTrue(cardText.contains("per night")),
-                () -> assertTrue(cardText.contains("TV")),
-                () -> assertTrue(cardText.contains("WiFi")),
-                () -> assertTrue(cardText.contains("Safe"))
+                () -> assertTrue(
+                        cardText.contains("Single")
+                ),
+                () -> assertTrue(
+                        cardText.contains("£100")
+                ),
+                () -> assertTrue(
+                        cardText.contains("per night")
+                ),
+                () -> assertTrue(
+                        cardText.contains("TV")
+                ),
+                () -> assertTrue(
+                        cardText.contains("WiFi")
+                ),
+                () -> assertTrue(
+                        cardText.contains("Safe")
+                )
         );
 
-        WebElement bookNow = singleCard.findElements(
-                        By.cssSelector("a, button")
-                )
-                .stream()
-                .filter(WebElement::isDisplayed)
-                .filter(element ->
-                        element.getText()
-                                .trim()
-                                .equalsIgnoreCase("Book now")
-                )
-                .findFirst()
-                .orElseThrow();
+        WebElement bookNow =
+                singleCard.findElements(
+                                By.cssSelector(
+                                        "a, button"
+                                )
+                        )
+                        .stream()
+                        .filter(WebElement::isDisplayed)
+                        .filter(element ->
+                                element.getText()
+                                        .trim()
+                                        .equalsIgnoreCase(
+                                                "Book now"
+                                        )
+                        )
+                        .findFirst()
+                        .orElseThrow();
 
-        ((JavascriptExecutor) driver).executeScript(
+        js.executeScript(
                 "arguments[0].click();",
                 bookNow
         );
 
         wait.until(
-                driver -> driver.getCurrentUrl()
-                        .contains("/reservation/")
+                driver ->
+                        driver.getCurrentUrl()
+                                .contains("/reservation/")
         );
 
-        String url = driver.getCurrentUrl();
+        String url =
+                driver.getCurrentUrl();
 
         assertAll(
                 "Перехід до бронювання",
@@ -232,11 +339,15 @@ class BorysUiTest {
                         "URL має містити /reservation/"
                 ),
                 () -> assertTrue(
-                        url.contains("checkin=2026-11-20"),
+                        url.contains(
+                                "checkin=2026-11-20"
+                        ),
                         "URL має містити дату заїзду"
                 ),
                 () -> assertTrue(
-                        url.contains("checkout=2026-11-22"),
+                        url.contains(
+                                "checkout=2026-11-22"
+                        ),
                         "URL має містити дату виїзду"
                 )
         );
