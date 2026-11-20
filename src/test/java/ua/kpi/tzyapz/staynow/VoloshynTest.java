@@ -51,6 +51,7 @@ class VoloshynTest {
         }
     }
 
+    // Дефект модуля: не застосовується надбавка 15% для п'ятниці. Issue: #28
     @ParameterizedTest(name = "[{index}] {0}: nights={2} -> expected={3}")
     @DisplayName("UT-10 (BL-50): Знижка 10% при бронюванні від 7 ночей (межа 6 vs 7 ночей)")
     @CsvSource({
@@ -71,6 +72,7 @@ class VoloshynTest {
                 () -> "Невірний розрахунок знижки 10% за тривалість проживання (" + caseName + ")");
     }
 
+    // Дефект модуля: при скасуванні рівно за 7 днів нараховується штраф. Issue: #25
     @ParameterizedTest(name = "[{index}] {0}: daysBefore={1} -> expectedFee={3}")
     @DisplayName("UT-11 (BL-60): Штраф за скасування бронювання (7 днів -> 0%, 6/3 дні -> 50%, 2 дні -> 100%)")
     @CsvSource({
@@ -90,6 +92,7 @@ class VoloshynTest {
                 () -> "Невірний розрахунок штрафу за скасування (" + caseName + ")");
     }
 
+    // Дефект модуля: стикове бронювання помилково визначається як перетин дат. Issue: #26
     @ParameterizedTest(name = "[{index}] {0}: [{1}..{2}] -> available={3}")
     @DisplayName("UT-12 (BL-70): Перевірка перетину дат бронювань (існуюче 10.11–12.11)")
     @CsvSource({
