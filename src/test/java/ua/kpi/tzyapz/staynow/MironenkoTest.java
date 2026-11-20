@@ -54,6 +54,8 @@ class MironenkoTest {
             "2026-11-15, false", // Неділя
             "2026-11-13, true" // П'ятниця
     })
+
+    // Дефект модуля: некоректно визначаються вихідні ночі для надбавки. Issue: #28
     @DisplayName("UT-07 | BL-30: перевірка вихідних днів для надбавки")
     void isWeekendNight_Test(String dateStr, boolean expected) {
         LocalDate date = LocalDate.parse(dateStr);
@@ -61,6 +63,7 @@ class MironenkoTest {
     }
 
     @Test
+    // Дефект модуля: при скасуванні рівно за 7 днів нараховується штраф. Issue: #25
     @DisplayName("UT-08 | BL-60: скасування за 7 днів - безкоштовно (0%)")
     void cancellationFee_7Days_IsFree() {
         BigDecimal total = new BigDecimal("1000.00");
