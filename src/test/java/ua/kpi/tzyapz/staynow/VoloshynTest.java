@@ -28,7 +28,7 @@ class VoloshynTest {
             "Email без @ (plainaddress), plainaddress, +380501234567, false",
             "Email без домену (user@), user@, +380501234567, false",
             "Некоректний телефон без +380, user@example.com, 0501234567, false",
-            "Коректні email та телефон +380, user@example.com, +38012345678, true"
+            "Коректні email та телефон +380, user@example.com, +380501234567, true"
     })
     void ut09_validateContactInfo(String caseName, String email, String phone, boolean expectedValid) {
         BookingValidator validator = new BookingValidator();
