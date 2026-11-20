@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -21,7 +19,6 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @Tag("ui")
 @DisplayName("Sprint 4: UI-тести UI-01–UI-02 (Виконавець: Проценко Д.-С.)")
@@ -29,6 +26,9 @@ class ProtsenkoUiTest {
 
     private static final String BASE_URL =
             "https://automationintesting.online/";
+
+    private static final String ADMIN_URL =
+            BASE_URL + "admin";
 
     private WebDriver driver;
     private WebDriverWait wait;
@@ -45,7 +45,7 @@ class ProtsenkoUiTest {
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
 
-        driver.get(BASE_URL);
+        driver.get(ADMIN_URL);
     }
 
     @AfterEach
@@ -55,153 +55,99 @@ class ProtsenkoUiTest {
         }
     }
 
-    private void openBookingPage() {
-
-        Object result =
-                ((JavascriptExecutor) driver).executeAsyncScript(
-                        "const done = arguments[arguments.length - 1];" +
-                        "fetch('/api/room?checkin=2026-11-20&checkout=2026-11-22')" +
-                        ".then(r => r.json())" +
-                        ".then(data => {" +
-                        "  const rooms = data.rooms || [];" +
-                        "  done(rooms.map(r => r.roomid).join(','));" +
-                        "})" +
-                        ".catch(() => done(''));"
-                );
-
-        String roomIds = result == null
-                ? ""
-                : result.toString();
-
-        if (roomIds.isBlank()) {
-            fail("Не знайдено доступних номерів");
-        }
-
-        for (String roomId : roomIds.split(",")) {
-
-            driver.get(
-                    BASE_URL
-                            + "reservation/"
-                            + roomId
-                            + "?checkin=2026-11-20"
-                            + "&checkout=2026-11-22"
-            );
-
-            try {
-                new WebDriverWait(
-                        driver,
-                        Duration.ofSeconds(5)
-                ).until(
-                        ExpectedConditions.visibilityOfElementLocated(
-                                By.cssSelector(".booking-card")
-                        )
-                );
-
-                return;
-
-            } catch (TimeoutException ignored) {
-            }
-        }
-
-        fail("Не вдалося відкрити сторінку бронювання жодного доступного номера");
-    }
-
     @Test
-    @DisplayName("UI-01 / TC-012: Перевірка Price Summary та розрахунку Cleaning fee, Service fee і Total")
-    void testUi01_bookingFormCalculation() {
+    @DisplayName("UI-01 / TC-025 / GUI-70: на сторінці входу відображаються Username, Password і Login")
+    void testUi01_adminLoginFormElementsAreVisible() {
 
-        openBookingPage();
-
-        WebElement priceSummaryBlock = wait.until(
+        WebElement username = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath(
-                                "//h3[contains(normalize-space(),'Price Summary')]/parent::*"
+                        By.cssSelector(
+                                "#username, input[placeholder='Enter username']"
                         )
                 )
         );
 
-        String summaryText =
-                priceSummaryBlock.getText();
+        WebElement password = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(
+                                "#password, input[placeholder='Password']"
+                        )
+                )
+        );
+
+        WebElement loginButton = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(
+                                "#doLogin, button[type='submit']"
+                        )
+                )
+        );
 
         assertAll(
-                "Перевірка блоку Price Summary (TC-012 / GUI-50)",
+                "TC-025 / GUI-70: елементи форми Login",
                 () -> assertTrue(
-                        summaryText.contains("nights"),
-                        "У Price Summary має відображатися кількість ночей та базовий тариф"
+                        username.isDisplayed(),
+                        "Поле Username має бути видимим"
                 ),
                 () -> assertTrue(
-                        summaryText.contains("Cleaning fee")
-                                && summaryText.contains("£25"),
-                        "Має відображатися Cleaning fee £25"
+                        password.isDisplayed(),
+                        "Поле Password має бути видимим"
                 ),
                 () -> assertTrue(
-                        summaryText.contains("Service fee")
-                                && summaryText.contains("£15"),
-                        "Має відображатися Service fee £15"
-                ),
-                () -> assertTrue(
-                        summaryText.contains("Total"),
-                        "Має відображатися підсумковий рядок Total"
+                        loginButton.isDisplayed(),
+                        "Кнопка Login має бути видимою"
                 )
         );
     }
 
     @Test
-    @DisplayName("UI-02 / TC-017: Спроба бронювання номера з порожніми полями форми бронювання")
-    void testUi02_validationErrorMessageDisplay() {
+    @DisplayName("UI-02 / TC-021 / F-80: неправильний пароль не дає доступу до адмінпанелі")
+    void testUi02_invalidPasswordDoesNotLogin() {
 
-        openBookingPage();
-
-        WebElement openFormButton = wait.until(
-                ExpectedConditions.presenceOfElementLocated(
-                        By.id("doReservation")
-                )
-        );
-
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();",
-                openFormButton
-        );
-
-        wait.until(
+        WebElement username = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.name("firstname")
-                )
-        );
-
-        WebElement submitBookingButton = wait.until(
-                ExpectedConditions.presenceOfElementLocated(
-                        By.xpath(
-                                "//button[normalize-space()='Reserve Now']"
+                        By.cssSelector(
+                                "#username, input[placeholder='Enter username']"
                         )
                 )
         );
 
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();",
-                submitBookingButton
+        WebElement password = driver.findElement(
+                By.cssSelector(
+                        "#password, input[placeholder='Password']"
+                )
         );
 
-        WebElement errorAlert = wait.until(
+        username.sendKeys("admin");
+        password.sendKeys("wrong-password");
+
+        WebElement loginButton = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector(
+                                "#doLogin, button[type='submit']"
+                        )
+                )
+        );
+
+        loginButton.click();
+
+        WebElement usernameAfter = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
-                        By.cssSelector(".alert-danger")
+                        By.cssSelector(
+                                "#username, input[placeholder='Enter username']"
+                        )
                 )
         );
 
         assertAll(
-                "Перевірка помилок валідації при порожніх полях (TC-017 / GUI-80)",
+                "TC-021 / F-80: неправильний пароль",
+                () -> assertFalse(
+                        driver.getCurrentUrl().contains("/admin/rooms"),
+                        "При неправильному паролі не має бути переходу в /admin/rooms"
+                ),
                 () -> assertTrue(
-                        errorAlert.isDisplayed(),
-                        "Блок повідомлень про помилки валідації має відображатися"
-                ),
-                () -> assertFalse(
-                        errorAlert.getText().isBlank(),
-                        "Текст повідомлення про помилку не має бути порожнім"
-                ),
-                () -> assertFalse(
-                        driver.getPageSource()
-                                .contains("Booking Confirmed"),
-                        "Підтвердження бронювання не повинно з'являтися при порожніх полях"
+                        usernameAfter.isDisplayed(),
+                        "Форма входу має залишатися доступною"
                 )
         );
     }
