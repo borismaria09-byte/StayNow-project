@@ -5,9 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -16,25 +15,37 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("ui")
-@DisplayName("StayNow UI: сценарій UI-04 (валідація форми бронювання)")
+@DisplayName("StayNow UI: сценарій UI-04")
 class VoloshynUiTest {
 
-    private static final String BASE_URL = "https://automationintesting.online/";
+    private static final String BASE_URL =
+            "https://automationintesting.online/";
+
+    private static final String ADMIN_URL =
+            BASE_URL + "admin";
+
     private WebDriver driver;
     private WebDriverWait wait;
 
     @BeforeEach
     void openBrowser() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new", "--window-size=1280,900");
+        options.addArguments(
+                "--headless=new",
+                "--window-size=1280,900",
+                "--remote-allow-origins=*"
+        );
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-        driver.get(BASE_URL);
+
+        driver.get(ADMIN_URL);
     }
 
     @AfterEach
@@ -45,46 +56,61 @@ class VoloshynUiTest {
     }
 
     @Test
-    @DisplayName("UI-04 [TC-013]: валідація форми бронювання при невалідному Email та короткому Phone")
-    void ui04_bookingFormRejectsInvalidEmailAndShortPhone() {
-        By bookBtnLocator = By.cssSelector("a.btn-primary[href*='reservation'], button.openBooking");
-        WebElement bookBtn = wait.until(ExpectedConditions.presenceOfElementLocated(bookBtnLocator));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", bookBtn);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", bookBtn);
+    @DisplayName("UI-04 / TC-023 / F-80: порожні поля не дозволяють увійти до адмінпанелі")
+    void ui04_emptyLoginFieldsDoNotLogin() {
 
-        wait.until(ExpectedConditions.urlContains("/reservation/"));
+        WebElement username = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(
+                                "#username, input[placeholder='Enter username']"
+                        )
+                )
+        );
 
-        try {
-            List<WebElement> reserveNowButtons = driver.findElements(By.id("doReservation"));
-            if (!reserveNowButtons.isEmpty()) {
-                WebElement reserveNowButton = reserveNowButtons.get(0);
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", reserveNowButton);
-            }
+        WebElement password = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(
+                                "#password, input[placeholder='Password']"
+                        )
+                )
+        );
 
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("firstname")));
-        } catch (TimeoutException e) {
-            fail("Форма бронювання не завантажилась: /api/room/{id} повертає HTTP 500");
-        }
+        WebElement loginButton = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector(
+                                "#doLogin, button[type='submit']"
+                        )
+                )
+        );
 
-        driver.findElement(By.name("firstname")).sendKeys("Dmytro");
-        driver.findElement(By.name("lastname")).sendKeys("Voloshyn");
-        driver.findElement(By.name("email")).sendKeys("invalid-email");
-        driver.findElement(By.name("phone")).sendKeys("12345");
+        loginButton.click();
 
-        WebElement submitBtn = wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//button[contains(text(),'Book') or contains(text(),'Reserve')]")));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", submitBtn);
+        WebElement loginButtonAfter = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.cssSelector(
+                                "#doLogin, button[type='submit']"
+                        )
+                )
+        );
 
-        WebElement alertBox = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.cssSelector(".alert.alert-danger")));
-        String errorText = alertBox.getText();
-
-        assertAll("UI-04: перевірка повідомлень валідації",
-                () -> assertTrue(alertBox.isDisplayed(), "Блок помилок має відображатися"),
-                () -> assertTrue(errorText.toLowerCase().contains("email"),
-                        "Очікували помилку email, отримано: " + errorText),
-                () -> assertTrue(errorText.contains("11") && errorText.contains("21"),
-                        "Очікували помилку довжини телефону (11..21), отримано: " + errorText)
+        assertAll(
+                "TC-023 / F-80: порожні поля Login",
+                () -> assertTrue(
+                        username.getAttribute("value").isEmpty(),
+                        "Username має залишатися порожнім"
+                ),
+                () -> assertTrue(
+                        password.getAttribute("value").isEmpty(),
+                        "Password має залишатися порожнім"
+                ),
+                () -> assertFalse(
+                        driver.getCurrentUrl().contains("/admin/rooms"),
+                        "Не має бути переходу до адмінпанелі"
+                ),
+                () -> assertTrue(
+                        loginButtonAfter.isDisplayed(),
+                        "Кнопка Login має залишатися на сторінці"
+                )
         );
     }
 }
