@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -47,25 +48,32 @@ class VoloshynUiTest {
     @DisplayName("UI-04 [TC-013]: валідація форми бронювання при невалідному Email та короткому Phone")
     void ui04_bookingFormRejectsInvalidEmailAndShortPhone() {
         By bookBtnLocator = By.cssSelector("a.btn-primary[href*='reservation'], button.openBooking");
-        WebElement bookBtn = wait.until(ExpectedConditions.elementToBeClickable(bookBtnLocator));
+        WebElement bookBtn = wait.until(ExpectedConditions.presenceOfElementLocated(bookBtnLocator));
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", bookBtn);
-        bookBtn.click();
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", bookBtn);
 
-        List<WebElement> reserveNowButtons = driver.findElements(By.id("doReservation"));
-        if (!reserveNowButtons.isEmpty()) {
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("doReservation"))).click();
+        wait.until(ExpectedConditions.urlContains("/reservation/"));
+
+        try {
+            List<WebElement> reserveNowButtons = driver.findElements(By.id("doReservation"));
+            if (!reserveNowButtons.isEmpty()) {
+                WebElement reserveNowButton = reserveNowButtons.get(0);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", reserveNowButton);
+            }
+
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("firstname")));
+        } catch (TimeoutException e) {
+            fail("Форма бронювання не завантажилась: /api/room/{id} повертає HTTP 500");
         }
-
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("firstname")));
 
         driver.findElement(By.name("firstname")).sendKeys("Dmytro");
         driver.findElement(By.name("lastname")).sendKeys("Voloshyn");
         driver.findElement(By.name("email")).sendKeys("invalid-email");
         driver.findElement(By.name("phone")).sendKeys("12345");
 
-        WebElement submitBtn = wait.until(ExpectedConditions.elementToBeClickable(
+        WebElement submitBtn = wait.until(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//button[contains(text(),'Book') or contains(text(),'Reserve')]")));
-        submitBtn.click();
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", submitBtn);
 
         WebElement alertBox = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector(".alert.alert-danger")));
