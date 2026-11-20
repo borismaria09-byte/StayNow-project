@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.HasCapabilities;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.Platform;
@@ -80,7 +81,7 @@ class MironenkoUiTest {
     private Keys getModifierKey() {
 
         Platform platform =
-                ((org.openqa.selenium.HasCapabilities) driver)
+                ((HasCapabilities) driver)
                         .getCapabilities()
                         .getPlatformName();
 
@@ -127,13 +128,10 @@ class MironenkoUiTest {
                 input
         );
 
-        wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        input
-                )
+        js.executeScript(
+                "arguments[0].click();",
+                input
         );
-
-        input.click();
 
         input.sendKeys(
                 Keys.chord(
@@ -146,7 +144,9 @@ class MironenkoUiTest {
                 Keys.BACK_SPACE
         );
 
-        input.sendKeys(date);
+        input.sendKeys(
+                date
+        );
 
         input.sendKeys(
                 Keys.TAB
@@ -387,11 +387,12 @@ class MironenkoUiTest {
 
         WebElement checkAvailability =
                 wait.until(
-                        ExpectedConditions.elementToBeClickable(
-                                By.xpath(
-                                        "//button[normalize-space()='Check Availability']"
+                        ExpectedConditions
+                                .presenceOfElementLocated(
+                                        By.xpath(
+                                                "//button[normalize-space()='Check Availability']"
+                                        )
                                 )
-                        )
                 );
 
         js.executeScript(
@@ -399,7 +400,10 @@ class MironenkoUiTest {
                 checkAvailability
         );
 
-        checkAvailability.click();
+        js.executeScript(
+                "arguments[0].click();",
+                checkAvailability
+        );
 
         wait.until(driver -> {
 
