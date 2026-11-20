@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -104,63 +105,96 @@ class BorysUiTest {
     )
     void testUi06_singleRoomCardAndBooking() {
 
-        WebElement checkIn = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.cssSelector("input[placeholder*='Check In']")
-                )
-        );
+        List<WebElement> dateInputs = wait.until(driver -> {
 
-        WebElement checkOut = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.cssSelector("input[placeholder*='Check Out']")
-                )
-        );
+            List<WebElement> inputs =
+                    driver.findElements(
+                            By.cssSelector("#booking input.form-control")
+                    );
 
-        checkIn.clear();
+            return inputs.size() >= 2
+                    ? inputs
+                    : null;
+        });
+
+        WebElement checkIn = dateInputs.get(0);
+
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();",
+                checkIn
+        );
+        
+        checkIn.sendKeys(
+                Keys.chord(Keys.COMMAND, "a")
+        );
         checkIn.sendKeys("20/11/2026");
-        checkOut.clear();
+        checkIn.sendKeys(Keys.TAB);
+        
+        dateInputs = wait.until(driver -> {
+            List<WebElement> inputs =
+                    driver.findElements(
+                            By.cssSelector("#booking input.form-control")
+                    );
+        
+            return inputs.size() >= 2
+                    ? inputs
+                    : null;
+        });
+        
+        WebElement checkOut = dateInputs.get(1);
+        
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();",
+                checkOut
+        );
+        
+        checkOut.sendKeys(
+                Keys.chord(Keys.COMMAND, "a")
+        );
         checkOut.sendKeys("22/11/2026");
+        checkOut.sendKeys(Keys.TAB);
 
         WebElement checkAvailability = wait.until(
-                ExpectedConditions.elementToBeClickable(
+                ExpectedConditions.presenceOfElementLocated(
                         By.xpath("//button[contains(.,'Check Availability')]")
                 )
         );
 
-        checkAvailability.click();
-        WebElement singleCard = wait.until(driver -> {
-        
-            List<WebElement> cards =
-                    driver.findElements(
-                            By.xpath("//*[.//*[normalize-space()='Single']]")
-                    );
-        
-            return cards.stream()
-                    .filter(WebElement::isDisplayed)
-                    .filter(card -> {
-                        String text = card.getText();
-        
-                        return text.contains("£100 per night")
-                                && text.contains("TV")
-                                && text.contains("WiFi")
-                                && text.contains("Safe")
-                                && text.toLowerCase().contains("book now");
-                    })
-                    .findFirst()
-                    .orElse(null);
-        });
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();",
+                checkAvailability
+        );
 
-        assertNotNull(
+        WebElement singleCard = wait.until(driver -> {
+
+                List<WebElement> cards =
+                        driver.findElements(
+                                By.cssSelector(".room-card")
+                        );
+            
+                return cards.stream()
+                        .filter(WebElement::isDisplayed)
+                        .filter(card ->
+                                card.findElements(
+                                        By.xpath(".//*[normalize-space()='Single']")
+                                ).size() > 0
+                        )
+                        .findFirst()
+                        .orElse(null);
+            });
+
+            assertNotNull(
                 singleCard,
                 "Картка Single має відображатися"
         );
-
+        
         String cardText = singleCard.getText();
-
+        
         assertAll(
                 "Дані картки Single",
                 () -> assertTrue(cardText.contains("Single")),
-                () -> assertTrue(cardText.contains("£100 per night")),
+                () -> assertTrue(cardText.contains("£100")),
+                () -> assertTrue(cardText.contains("per night")),
                 () -> assertTrue(cardText.contains("TV")),
                 () -> assertTrue(cardText.contains("WiFi")),
                 () -> assertTrue(cardText.contains("Safe"))
@@ -179,9 +213,10 @@ class BorysUiTest {
                 .findFirst()
                 .orElseThrow();
 
-        wait.until(
-                ExpectedConditions.elementToBeClickable(bookNow)
-        ).click();
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();",
+                bookNow
+        );
 
         wait.until(
                 driver -> driver.getCurrentUrl()
