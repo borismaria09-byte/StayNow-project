@@ -20,6 +20,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -116,6 +117,21 @@ class MironenkoUiTest {
                     ? visible
                     : null;
         });
+    }
+
+    private DateTimeFormatter detectFormatter(String sampleValue) {
+        if (sampleValue != null) {
+            if (sampleValue.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            }
+            LocalDate today = LocalDate.now(ZoneOffset.UTC);
+            String mmPrefix = String.format("%02d/", today.getMonthValue());
+            String ddPrefix = String.format("%02d/", today.getDayOfMonth());
+            if (sampleValue.startsWith(mmPrefix) && !mmPrefix.equals(ddPrefix)) {
+                return DateTimeFormatter.ofPattern("MM/dd/yyyy");
+            }
+        }
+        return DateTimeFormatter.ofPattern("dd/MM/yyyy");
     }
 
     private void setDate(
@@ -341,9 +357,19 @@ class MironenkoUiTest {
                         parts[3]
                 );
 
+        driver.get(
+                BASE_URL
+        );
+
+        List<WebElement> inputs =
+                getDateInputs();
+
+        WebElement checkInInput =
+                inputs.get(0);
+
         DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
+                detectFormatter(
+                        checkInInput.getAttribute("value")
                 );
 
         String checkInUi =
@@ -355,16 +381,6 @@ class MironenkoUiTest {
                 checkOut.format(
                         formatter
                 );
-
-        driver.get(
-                BASE_URL
-        );
-
-        List<WebElement> inputs =
-                getDateInputs();
-
-        WebElement checkInInput =
-                inputs.get(0);
 
         setDate(
                 checkInInput,
@@ -381,10 +397,6 @@ class MironenkoUiTest {
                 checkOutInput,
                 checkOutUi
         );
-
-        System.out.println("DEBUG dates: in=" + checkInInput.getAttribute("value")
-                + ", out=" + checkOutInput.getAttribute("value")
-                + ", bookedRoomId=" + bookedRoomId);
 
         WebElement checkAvailability =
                 wait.until(
