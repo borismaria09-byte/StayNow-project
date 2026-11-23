@@ -127,11 +127,11 @@ class MironenkoUiTest {
             LocalDate today = LocalDate.now(ZoneOffset.UTC);
             String mmPrefix = String.format("%02d/", today.getMonthValue());
             String ddPrefix = String.format("%02d/", today.getDayOfMonth());
-            if (sampleValue.startsWith(mmPrefix) && !mmPrefix.equals(ddPrefix)) {
-                return DateTimeFormatter.ofPattern("MM/dd/yyyy");
+            if (sampleValue.startsWith(ddPrefix) && !ddPrefix.equals(mmPrefix)) {
+                return DateTimeFormatter.ofPattern("dd/MM/yyyy");
             }
         }
-        return DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return DateTimeFormatter.ofPattern("MM/dd/yyyy");
     }
 
     private void setDate(
@@ -140,11 +140,9 @@ class MironenkoUiTest {
     ) {
 
         js.executeScript(
-                "arguments[0].scrollIntoView({block:'center'}); arguments[0].focus();",
+                "arguments[0].scrollIntoView({block:'center'}); arguments[0].focus(); arguments[0].click();",
                 input
         );
-
-        input.click();
 
         input.sendKeys(
                 Keys.chord(
