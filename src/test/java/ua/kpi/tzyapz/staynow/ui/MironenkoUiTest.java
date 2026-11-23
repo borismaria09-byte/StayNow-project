@@ -124,14 +124,11 @@ class MironenkoUiTest {
     ) {
 
         js.executeScript(
-                "arguments[0].scrollIntoView({block:'center'});",
+                "arguments[0].scrollIntoView({block:'center'}); arguments[0].focus();",
                 input
         );
 
-        js.executeScript(
-                "arguments[0].click();",
-                input
-        );
+        input.click();
 
         input.sendKeys(
                 Keys.chord(
@@ -149,7 +146,7 @@ class MironenkoUiTest {
         );
 
         input.sendKeys(
-                Keys.ENTER
+                Keys.ESCAPE
         );
     }
 
@@ -384,6 +381,10 @@ class MironenkoUiTest {
                 checkOutInput,
                 checkOutUi
         );
+
+        System.out.println("DEBUG dates: in=" + checkInInput.getAttribute("value")
+                + ", out=" + checkOutInput.getAttribute("value")
+                + ", bookedRoomId=" + bookedRoomId);
 
         WebElement checkAvailability =
                 wait.until(
