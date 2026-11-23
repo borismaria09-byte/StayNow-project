@@ -149,7 +149,7 @@ class MironenkoUiTest {
         );
 
         input.sendKeys(
-                Keys.TAB
+                Keys.ENTER
         );
     }
 
@@ -405,8 +405,6 @@ class MironenkoUiTest {
                 checkAvailability
         );
 
-        // React може перемалювати картки між пошуком елемента та його читанням.
-        // ExpectedConditions.refreshed повторно перевіряє умову у разі stale.
         wait.until(
                 ExpectedConditions.refreshed(driver -> {
                     List<WebElement> links =
@@ -415,10 +413,6 @@ class MironenkoUiTest {
                                             ".room-card a[href*='/reservation/']"
                                     )
                             );
-
-                    if (links.isEmpty()) {
-                        return false;
-                    }
 
                     return links.stream()
                             .filter(WebElement::isDisplayed)
@@ -432,7 +426,6 @@ class MironenkoUiTest {
                 })
         );
 
-        // Читаємо актуальний DOM за один JS-виклик без застарілих WebElement.
         boolean bookedRoomStillVisible =
                 Boolean.TRUE.equals(
                         js.executeScript(
